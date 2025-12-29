@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Namensschild Generator</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+    <div class="background-pattern">
+        <!-- Background wird hier via JavaScript eingefügt -->
+    </div>
+
+    <div class="container">
+        <!-- Eingabebereich (linke Seite) -->
+        <div class="input-section">
+            <h1>Namensschild Generator</h1>
+            
+            <div class="form-group">
+                <label for="firstName">Vorname *</label>
+                <input 
+                    type="text" 
+                    id="firstName" 
+                    placeholder="z.B. Max"
+                    autocomplete="off"
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="lastName">Nachname *</label>
+                <input 
+                    type="text" 
+                    id="lastName" 
+                    placeholder="z.B. Musterfrau"
+                    autocomplete="off"
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="phone">Rufnummer *</label>
+                <input 
+                    type="tel" 
+                    id="phone" 
+                    placeholder="z.B. +49 123 456 78"
+                    autocomplete="off"
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="email">E-Mail *</label>
+                <input 
+                    type="email" 
+                    id="email" 
+                    placeholder="z.B. max.musterfrau@landesjugendchor.de"
+                    autocomplete="off"
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="textContent">
+                    Zusatztext (optional)
+                    <br>
+                    <small>Nutze <code>\n</code> oder drücke Shift+Enter für Zeilenumbruch</small>
+                </label>
+                <textarea 
+                    id="textContent" 
+                    placeholder="Zusätzliche Informationen..."
+                    rows="3"
+                ></textarea>
+            </div>
+
+            <!-- Design-Selector -->
+            <div class="form-group">
+                <label for="designSelector">Design *</label>
+                <select id="designSelector">
+                    <option value="light">Helles Design</option>
+                    <option value="dark">Dunkles Design (Black-Folder)</option>
+                </select>
+            </div>
+
+            <div class="button-group">
+                <button id="resetBtn" class="btn btn-secondary">Zurücksetzen</button>
+                <button id="exportPdf" class="btn btn-primary">📥 Als PDF exportieren</button>
+            </div>
+        </div>
+
+        <!-- Vorschaubereich (rechte Seite) -->
+        <div class="preview-section">
+            <h2>Live-Vorschau</h2>
+            <div class="preview-container">
+                <!-- Hintergrund Container -->
+                <div id="nametagBackground" class="nametag-background">
+                    <!-- SVG Hintergrund wird hier eingefügt -->
+                </div>
+
+                <!-- Text & Logo Overlay -->
+                <div id="nametagPreview" class="nametag">
+                    <!-- Logo Bereich (oben rechts) -->
+                    <div class="logo-area" id="logoArea">
+                        <!-- Logo wird hier eingefügt -->
+                    </div>
+
+                    <!-- Text Bereich -->
+                    <div class="text-area">
+                        <div id="previewContent" class="preview-content">
+                            <p style="color: #999;">Deine Eingaben werden hier angezeigt...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Info Box -->
+            <div class="info-box">
+                <p><strong>Größe:</strong> 210 × 100 mm (DIN A6 quer)</p>
+                <p><strong>Formatierung:</strong> Schrift passt sich automatisch an</p>
+                <p><strong>Tipp:</strong> Wähle dein Design oben aus!</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
