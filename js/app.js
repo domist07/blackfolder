@@ -4,7 +4,7 @@
  * Koordiniert alle Komponenten:
  * - Formulareingabe und Validierung
  * - Canvas-Rendering
- * - PDF-Export
+ * - PDF-Export (VEKTOR)
  * - LocalStorage-Verwaltung
 
  */
@@ -21,7 +21,7 @@ const exportA4Btn = document.getElementById('exportA4PdfBtn');
 
 // ===== Komponenten initialisieren =====
 const canvasRenderer = new CanvasRenderer(previewCanvas);
-const pdfExporter = new PDFExporter(previewCanvas);
+const pdfExporter = new PDFExporter(canvasRenderer); // ✨ Übergebe Renderer
 
 // ===== State Management =====
 const state = {
@@ -143,7 +143,7 @@ emailInput.addEventListener('input', (e) => {
 });
 
 /**
- * Export Einzelnes PDF Button
+ * Export Einzelnes PDF Button (VEKTOR)
 
  */
 exportSingleBtn.addEventListener('click', () => {
@@ -151,7 +151,7 @@ exportSingleBtn.addEventListener('click', () => {
 });
 
 /**
- * Export A4 PDF Button
+ * Export A4 PDF Button (VEKTOR)
 
  */
 exportA4Btn.addEventListener('click', () => {
@@ -169,7 +169,7 @@ exportA4Btn.addEventListener('click', () => {
 window.addEventListener('load', () => {
     loadFromLocalStorage();
     updatePreview();
-    console.log('✓ Anwendung initialisiert');
+    console.log('✓ Anwendung initialisiert (Vektor-Export aktiv)');
 });
 
 /**
