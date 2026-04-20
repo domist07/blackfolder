@@ -275,3 +275,55 @@ input[type="email"]::placeholder {
         font-size: 0.95rem;
     }
 }
+
+/* ===== Input Hint ===== */
+.input-hint {
+    display: block;
+    color: #888;
+    font-size: 0.78rem;
+    margin-top: 0.4rem;
+    line-height: 1.4;
+}
+
+.input-hint strong {
+    color: #9d0000;
+    font-weight: 700;
+    padding: 0 2px;
+}
+
+/* ===== Footer ===== */
+.site-footer {
+    width: 100%;
+    text-align: center;
+    padding: 1.5rem 2rem;
+    margin-top: 1rem;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.8rem;
+    line-height: 1.6;
+}
+
+.footer-credit {
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.85);
+    margin-bottom: 0.3rem;
+    font-size: 0.85rem;
+}
+
+.footer-description {
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 0.5rem;
+    font-style: italic;
+}
+
+.footer-link {
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+    transition: all 0.3s ease;
+    padding-bottom: 1px;
+}
+
+.footer-link:hover {
+    color: #fff;
+    border-bottom-color: #fff;
+}
