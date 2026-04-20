@@ -1,32 +1,25 @@
-/**
- * PDF Export Manager
- * 
- * Exportiert das Namensschild als PDF in 300 DPI:
- * - Einzelnes Namensschild (95x60mm)
- * - A4 zum Drucken (10mm Rand oben/links)
- */
-
 class PDFExporter {
     /**
-     * @param {HTMLCanvasElement} previewCanvas - Vorschau-Canvas (niedrig aufgelöst)
-     * @param {CanvasRenderer} renderer - Canvas-Renderer für Hochauflösung
+     * @param {HTMLCanvasElement} previewCanvas
+     * @param {CanvasRenderer} renderer
      */
     constructor(previewCanvas, renderer) {
         this.previewCanvas = previewCanvas;
         this.renderer = renderer;
 
-        // 300 DPI Konstanten
-        // 95mm bei 300 DPI = 95 / 25.4 * 300 ≈ 1122 px
-        // 60mm bei 300 DPI = 60 / 25.4 * 300 ≈  709 px
-        this.DPI = 300;
-        this.EXPORT_WIDTH = Math.round(95 / 25.4 * this.DPI);   // 1122
-        this.EXPORT_HEIGHT = Math.round(60 / 25.4 * this.DPI);  // 709
+        // 600 DPI Konstanten
+        // 95mm bei 600 DPI = 95 / 25.4 * 600 ≈ 2244 px
+        // 60mm bei 600 DPI = 60 / 25.4 * 600 ≈ 1417 px
+        this.DPI = 600;
+        this.EXPORT_WIDTH = Math.round(95 / 25.4 * this.DPI);
+        this.EXPORT_HEIGHT = Math.round(60 / 25.4 * this.DPI);
+        this.JPEG_QUALITY = 0.92; // 92% Qualität, guter Kompromiss
     }
 
     /**
-     * Erstellt ein hochaufgelöstes Canvas (300 DPI) für den Export
+     * Erstellt ein hochaufgelöstes Canvas (600 DPI)
      * @param {Object} data - Benutzerdaten
-     * @returns {HTMLCanvasElement} Hochaufgelöstes Canvas
+     * @returns {HTMLCanvasElement}
      */
     createHiResCanvas(data) {
         const hiResCanvas = document.createElement('canvas');
@@ -35,17 +28,16 @@ class PDFExporter {
         
         const hiResCtx = hiResCanvas.getContext('2d');
 
-        // Skalierungsfaktor berechnen
+        // Skalierungsfaktor
         const scaleX = this.EXPORT_WIDTH / CANVAS_CONFIG.WIDTH;
         const scaleY = this.EXPORT_HEIGHT / CANVAS_CONFIG.HEIGHT;
 
-        // Skalieren
         hiResCtx.scale(scaleX, scaleY);
 
         // Hintergrund zeichnen
         renderBackground(hiResCtx);
 
-        // Text zeichnen (nutzt den gleichen Renderer mit anderem Context)
+        // Text zeichnen
         const tempRenderer = new CanvasRenderer(hiResCanvas);
         tempRenderer.ctx = hiResCtx;
         tempRenderer.renderTextLayer(data);
@@ -54,8 +46,17 @@ class PDFExporter {
     }
 
     /**
-     * Validiert, ob notwendige Daten vorhanden sind
-     * @param {Object} data - Benutzerdaten
+     * Konvertiert Canvas zu komprimiertem JPEG Data-URL
+     * @param {HTMLCanvasElement} canvas
+     * @returns {string} JPEG Data-URL
+     */
+    getCompressedImage(canvas) {
+        return canvas.toDataURL('image/jpeg', this.JPEG_QUALITY);
+    }
+
+    /**
+     * Validiert Daten
+     * @param {Object} data
      * @returns {boolean}
      */
     validateData(data) {
@@ -68,8 +69,8 @@ class PDFExporter {
 
     /**
      * Generiert Dateinamen
-     * @param {Object} data - Benutzerdaten
-     * @param {string} suffix - Dateiname-Suffix
+     * @param {Object} data
+     * @param {string} suffix
      * @returns {string}
      */
     generateFileName(data, suffix = '') {
@@ -78,8 +79,8 @@ class PDFExporter {
     }
 
     /**
-     * Exportiert einzelnes Namensschild als PDF (300 DPI)
-     * @param {Object} data - Benutzerdaten
+     * Exportiert einzelnes Namensschild als PDF (600 DPI, komprimiert)
+     * @param {Object} data
      */
     exportSingle(data) {
         if (!this.validateData(data)) return;
@@ -90,20 +91,19 @@ class PDFExporter {
             const pdf = new jsPDF({
                 orientation: 'landscape',
                 unit: 'mm',
-                format: [95, 60]
+                format: [95, 60],
+                compress: true
             });
 
-            // Hochaufgelöstes Bild erstellen
             const hiResCanvas = this.createHiResCanvas(data);
-            const imgData = hiResCanvas.toDataURL('image/png');
+            const imgData = this.getCompressedImage(hiResCanvas);
 
-            // Bild einfügen (volle Größe)
-            pdf.addImage(imgData, 'PNG', 0, 0, 95, 60);
+            pdf.addImage(imgData, 'JPEG', 0, 0, 95, 60);
 
             const fileName = this.generateFileName(data, 'Namensschild');
             pdf.save(fileName);
 
-            console.log(`✓ PDF exportiert (${this.DPI} DPI):`, fileName);
+            console.log(`✓ PDF exportiert (${this.DPI} DPI, JPEG ${this.JPEG_QUALITY * 100}%):`, fileName);
         } catch (error) {
             console.error('Fehler beim PDF-Export:', error);
             alert('Fehler beim Exportieren. Bitte versuchen Sie es erneut.');
@@ -111,8 +111,8 @@ class PDFExporter {
     }
 
     /**
-     * Exportiert Namensschild auf DIN A4 zum Drucken (300 DPI)
-     * @param {Object} data - Benutzerdaten
+     * Exportiert auf DIN A4 zum Drucken (600 DPI, komprimiert)
+     * @param {Object} data
      */
     exportA4(data) {
         if (!this.validateData(data)) return;
@@ -123,36 +123,30 @@ class PDFExporter {
             const pdf = new jsPDF({
                 orientation: 'portrait',
                 unit: 'mm',
-                format: 'a4'
+                format: 'a4',
+                compress: true
             });
 
-            // Hochaufgelöstes Bild erstellen
             const hiResCanvas = this.createHiResCanvas(data);
-            const imgData = hiResCanvas.toDataURL('image/png');
+            const imgData = this.getCompressedImage(hiResCanvas);
 
             // 10mm Abstand oben und links
-            pdf.addImage(imgData, 'PNG', 10, 10, 95, 60);
+            pdf.addImage(imgData, 'JPEG', 10, 10, 95, 60);
 
-            // Schnittmarkierungen (dezente Linien)
+            // Schnittmarkierungen
             pdf.setDrawColor(180, 180, 180);
             pdf.setLineWidth(0.2);
 
-            // Ecken markieren
             const x = 10, y = 10, w = 95, h = 60, m = 3;
-            // Oben-Links
             pdf.line(x - m, y, x, y);
             pdf.line(x, y - m, x, y);
-            // Oben-Rechts
             pdf.line(x + w, y, x + w + m, y);
             pdf.line(x + w, y - m, x + w, y);
-            // Unten-Links
             pdf.line(x - m, y + h, x, y + h);
             pdf.line(x, y + h, x, y + h + m);
-            // Unten-Rechts
             pdf.line(x + w, y + h, x + w + m, y + h);
             pdf.line(x + w, y + h, x + w, y + h + m);
 
-            // Hinweis
             pdf.setFontSize(8);
             pdf.setTextColor(150, 150, 150);
             pdf.text('Entlang der Markierungen ausschneiden', x, y + h + 10);
@@ -160,7 +154,7 @@ class PDFExporter {
             const fileName = this.generateFileName(data, 'A4_Druck');
             pdf.save(fileName);
 
-            console.log(`✓ A4 PDF exportiert (${this.DPI} DPI):`, fileName);
+            console.log(`✓ A4 PDF exportiert (${this.DPI} DPI, JPEG ${this.JPEG_QUALITY * 100}%):`, fileName);
         } catch (error) {
             console.error('Fehler beim A4-Export:', error);
             alert('Fehler beim Exportieren. Bitte versuchen Sie es erneut.');
