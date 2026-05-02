@@ -87,7 +87,7 @@ function NamesschildGenerator() {
           Dominik hat im LJC von 2012 bis 2026 mitgesungen
           und war von 2017 bis 2025 Betreuer für Öffentlichkeitsarbeit.
         </p>
-        <a href="https://github.com/" target="_blank" rel="noopener noreferrer" className="footer-link">
+        <a href="https://github.com/domist07/blackfolder" target="_blank" rel="noopener noreferrer" className="footer-link">
           GitHub Repository
         </a>
       </footer>
