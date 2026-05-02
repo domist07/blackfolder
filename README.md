@@ -37,11 +37,11 @@
 Der Hintergrund (Logo, Streifen, rote Fläche) wird **einmal** in `backgroundRenderer.js` definiert und sowohl für die Canvas-Vorschau als auch für den PDF-Export verwendet. Keine doppelte Pflege, keine Abweichungen.
 
 ```
-    backgroundRenderer.js
-            │
-            ├──→ Canvas-Vorschau (Live)
-            │
-            └──→ PDF-Export (gecachtes Bild)
+backgroundRenderer.js
+        │
+        ├──→ Canvas-Vorschau (Live)
+        │
+        └──→ PDF-Export (gecachtes Bild)
 ```
 
 ##### 2. Hybrid-Rendering im PDF
@@ -58,15 +58,15 @@ Der Hintergrund (Logo, Streifen, rote Fläche) wird **einmal** in `backgroundRen
 Alle Textfelder passen sich automatisch an:
 
 ```
-    Eingabe: "Maximilian-Alexander"
-             │
-             ▼
-    measureText() → zu breit?
-             │
-             ├── Nein → Standardgröße verwenden
-             │
-             └── Ja → Größe in 0.5pt-Schritten reduzieren
-                       (bis min. 8pt)
+Eingabe: "Maximilian-Alexander"
+            │
+            ▼
+measureText() → zu breit?
+            │
+            ├── Nein → Standardgröße verwenden
+            │
+            └── Ja → Größe in 0.5pt-Schritten reduzieren
+                    (bis min. 8pt)
 ```
 
 Vor- und Nachname teilen sich immer dieselbe Schriftgröße – der längere Name bestimmt die Größe für beide.
@@ -76,9 +76,9 @@ Vor- und Nachname teilen sich immer dieselbe Schriftgröße – der längere Nam
 Alle Farben sind als CSS Custom Properties definiert. Die Website-Notenlinien nutzen `color-mix()` mit den Projektvariablen – kein Hardcoding von Farbwerten außerhalb von `:root`.
 
 ```js
-    --primary-color: #9d0000;
-    --primary-light: #b13333;
-    --notenlinie: color-mix(in srgb, var(--primary-light) 20%, transparent);
+--primary-color: #9d0000;
+--primary-light: #b13333;
+--notenlinie: color-mix(in srgb, var(--primary-light) 20%, transparent);
 ```
 
 ##### 5. Performance-First Export
@@ -131,8 +131,8 @@ Lade das Roboto-Paket von [Google Fonts](https://fonts.google.com/specimen/Robot
 (Button „Download family") und lege folgende Dateien ab:
 
 ```
-    public/fonts/Roboto-Regular.ttf
-    public/fonts/Roboto-Medium.ttf
+public/fonts/Roboto-Regular.ttf
+public/fonts/Roboto-Medium.ttf
 ```
 
 **4. Entwicklungsserver starten**
@@ -165,27 +165,27 @@ Das Ergebnis liegt in `dist/` und kann auf jedem statischen Hosting deployed wer
 #### 📂 Projektstruktur
 
 ```
-    ljc-namensschild-generator/
-    ├── index.html                        Einstiegspunkt + Google Fonts Link
-    ├── package.json
-    ├── vite.config.js
-    ├── public/
-    │   └── fonts/
-    │       ├── Roboto-Regular.ttf        Für PDF-Einbettung (manuell ablegen)
-    │       └── Roboto-Medium.ttf         Für PDF-Einbettung (manuell ablegen)
-    └── src/
-        ├── main.jsx                      React-Mounting
-        ├── App.jsx                       Root-Komponente
-        ├── App.css                       Globale Styles + Notenlinien-Hintergrund
-        ├── components/
-        │   ├── NamesschildGenerator.jsx  Orchestrierung, State, Export-Trigger
-        │   ├── NamesschildPreview.jsx    Canvas Live-Vorschau
-        │   └── TextInputPanel.jsx        Formular-Eingaben
-        └── utils/
-            ├── constants.js              Alle Maße, Farben & Konfiguration
-            ├── backgroundRenderer.js     Canvas-Hintergrund (Logo + Streifen)
-            ├── fontLoader.js             TTF → Base64 → jsPDF VFS
-            └── pdfExport.js              PDF-Generierung (Hybrid-Ansatz)
+ljc-namensschild-generator/
+├── index.html                        Einstiegspunkt + Google Fonts Link
+├── package.json
+├── vite.config.js
+├── public/
+│   └── fonts/
+│       ├── Roboto-Regular.ttf        Für PDF-Einbettung (manuell ablegen)
+│       └── Roboto-Medium.ttf         Für PDF-Einbettung (manuell ablegen)
+└── src/
+    ├── main.jsx                      React-Mounting
+    ├── App.jsx                       Root-Komponente
+    ├── App.css                       Globale Styles + Notenlinien-Hintergrund
+    ├── components/
+    │   ├── NamesschildGenerator.jsx  Orchestrierung, State, Export-Trigger
+    │   ├── NamesschildPreview.jsx    Canvas Live-Vorschau
+    │   └── TextInputPanel.jsx        Formular-Eingaben
+    └── utils/
+        ├── constants.js              Alle Maße, Farben & Konfiguration
+        ├── backgroundRenderer.js     Canvas-Hintergrund (Logo + Streifen)
+        ├── fontLoader.js             TTF → Base64 → jsPDF VFS
+        └── pdfExport.js              PDF-Generierung (Hybrid-Ansatz)
 ```
 
 ---
