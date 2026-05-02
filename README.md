@@ -229,17 +229,3 @@ Alle physischen Maße sind zentral in `src/utils/constants.js` unter `PHYSICAL` 
 
 4. Entlang der grauen Schnittmarkierungen ausschneiden
 5. Fertig – in die Notenmappe einlegen
-
----
-
-#### 📄 Lizenz
-
-MIT License – siehe [LICENSE](LICENSE)
-
----
-
-#### 🙏 Credits
-
-Erstellt von **Dominik** für den tollsten Chor der Welt.
-
-LJC-Logo und Corporate Design: Landesjugendchor
