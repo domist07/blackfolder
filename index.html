@@ -1,107 +1,20 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>LJC Namensschild Generator</title>
     
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <link rel="stylesheet" href="css/styles.css">
+    <!-- Homizio Font von Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link 
+      href="https://fonts.googleapis.com/css2?family=Homenaje&display=swap" 
+      rel="stylesheet" 
+    />
 </head>
 <body>
-    <div class="container">
-        <!-- Formular-Seite -->
-        <div class="content-box">
-            <h1>LJC-Namensschild</h1>
-
-            <p class="description">
-                Erstelle dein eigenes Landesjugendchor Namensschild für deine Notenmappe
-            </p>
-
-            <form id="nametagForm">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="firstName">Vorname</label>
-                        <input 
-                            type="text" 
-                            id="firstName" 
-                            name="firstName" 
-                            placeholder="Max"
-                            maxlength="50"
-                            required
-                        >
-                    </div>
-                    <div class="form-group">
-                        <label for="lastName">Nachname</label>
-                        <input 
-                            type="text" 
-                            id="lastName" 
-                            name="lastName" 
-                            placeholder="Mustermann"
-                            maxlength="50"
-                            required
-                        >
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="phoneNumber">Rufnummer</label>
-                    <input 
-                        type="text" 
-                        id="phoneNumber" 
-                        name="phoneNumber" 
-                        placeholder="z.B. +49 123 456789"
-                        maxlength="30"
-                    >
-                </div>
-
-                <div class="form-group">
-                    <label for="email">E-Mail</label>
-                    <input 
-                        type="email" 
-                        id="email" 
-                        name="email" 
-                        placeholder="max.mustermann@example.com"
-                        maxlength="100"
-                    >
-                    <span class="input-hint">Tipp: Verwende <strong>/</strong> für einen manuellen Zeilenumbruch</span>
-                </div>
-            </form>
-        </div>
-
-        <!-- Vorschau-Seite -->
-        <div class="preview-box">
-            <h2>Vorschau</h2>
-            <span class="preview-label">Dein Namensschild (95 × 60 mm):</span>
-            <canvas id="previewCanvas" width="359" height="226"></canvas>
-
-            <div class="export-buttons">
-                <button type="button" class="btn-export" id="exportSinglePdfBtn">
-                    📥 Als PDF speichern
-                </button>
-                <button type="button" class="btn-export" id="exportA4PdfBtn">
-                    📄 Als A4 zum Drucken
-                </button>
-            </div>
-        </div>
-
-        <!-- Fußzeile als dritter Grid-Block -->
-        <footer class="site-footer">
-            <p class="footer-credit">Erstellt von Dominik für den tollsten Chor der Welt</p>
-            <p class="footer-description">TODO_PLATZHALTER_BESCHREIBUNG</p>
-            <a href="https://github.com/TODO_PLATZHALTER_REPO" 
-               target="_blank" 
-               rel="noopener noreferrer" 
-               class="footer-link">
-                GitHub Repository
-            </a>
-        </footer>
-
-    <script src="js/background.js"></script>
-    <script src="js/canvas.js"></script>
-    <script src="js/export.js"></script>
-    <script src="js/app.js"></script>
-
-    </div>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
 </body>
 </html>
