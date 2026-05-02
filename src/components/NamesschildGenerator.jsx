@@ -74,7 +74,7 @@ function NamesschildGenerator() {
     <div className="generator-container">
       {/* Header */}
       <header className="generator-header">
-        <h1>🎵 LJC Namensschild Generator</h1>
+        <h1>LJC Namensschild Generator</h1>
         <p>Erstelle dein persönliches Namensschild für die Notenmappe</p>
       </header>
 
@@ -112,7 +112,7 @@ function NamesschildGenerator() {
           Erstellt von Dominik für den tollsten Chor der Welt
         </p>
         <a
-          href="https://github.com/"
+          href="https://github.com/domist07/blackfolder"
           target="_blank"
           rel="noopener noreferrer"
           className="footer-link"
