@@ -90,6 +90,7 @@ body::before {
   border-radius: var(--radius);
   padding: 2rem;
   box-shadow: var(--shadow);
+  margin: 10px;
 }
 
 /* ===== Formular-Styles ===== */
