@@ -246,8 +246,9 @@ body::before {
   color: var(--text-light);
   text-decoration: none;
   font-size: 0.85rem;
+  text-decoration: underline;
 }
 
 .footer-link:hover {
-  text-decoration: underline;
+  font-weight: bold;
 }
