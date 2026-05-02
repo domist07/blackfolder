@@ -1,5 +1,12 @@
 /**
  * LJC Namensschild Generator - Hauptanwendung
+ * 
+ * Koordiniert alle Komponenten:
+ * - Formulareingabe und Validierung
+ * - Canvas-Rendering
+ * - PDF-Export (VEKTOR)
+ * - LocalStorage-Verwaltung
+
  */
 
 // ===== DOM-Elemente =====
@@ -14,7 +21,7 @@ const exportA4Btn = document.getElementById('exportA4PdfBtn');
 
 // ===== Komponenten initialisieren =====
 const canvasRenderer = new CanvasRenderer(previewCanvas);
-const pdfExporter = new PDFExporter(previewCanvas, canvasRenderer);
+const pdfExporter = new PDFExporter(canvasRenderer); // ✨ Übergebe Renderer
 
 // ===== State Management =====
 const state = {
@@ -113,10 +120,18 @@ emailInput.addEventListener('input', (e) => {
     updatePreview();
 });
 
+/**
+ * Export Einzelnes PDF Button (VEKTOR)
+
+ */
 exportSingleBtn.addEventListener('click', () => {
     pdfExporter.exportSingle(state);
 });
 
+/**
+ * Export A4 PDF Button (VEKTOR)
+
+ */
 exportA4Btn.addEventListener('click', () => {
     pdfExporter.exportA4(state);
 });
@@ -129,7 +144,7 @@ form.addEventListener('submit', (e) => {
 window.addEventListener('load', () => {
     loadFromLocalStorage();
     updatePreview();
-    console.log('✓ Anwendung initialisiert');
+    console.log('✓ Anwendung initialisiert (Vektor-Export aktiv)');
 });
 
 /**
