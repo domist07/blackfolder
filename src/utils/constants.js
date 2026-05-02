@@ -56,7 +56,7 @@ export const COLORS = {
 // ===== Schriftarten =====
 export const FONTS = {
   /** Font für die Canvas-Vorschau (Google Fonts) */
-  PREVIEW: "'Homenaje', sans-serif",
+  PREVIEW: "'Roboto', sans-serif",
   /** Font-Fallback für den PDF-Export */
   PDF: 'helvetica'
 };
