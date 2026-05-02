@@ -53,10 +53,6 @@ function NamesschildGenerator() {
 
   return (
     <div className="generator-container">
-      <header className="generator-header">
-        <h1>LJC Namensschild Generator</h1>
-        <p>Erstelle dein persönliches Namensschild für die Notenmappe</p>
-      </header>
 
       <TextInputPanel data={data} onChange={handleDataChange} />
 
