@@ -2,10 +2,14 @@ import { useState, useEffect, useCallback } from 'react';
 import TextInputPanel from './TextInputPanel';
 import NamesschildPreview from './NamesschildPreview';
 import { exportSinglePdf, exportA4Pdf } from '../utils/pdfExport';
+import { preloadFonts } from '../utils/fontLoader';
 
 const STORAGE_KEY = 'ljc_namensschild_data';
 const INITIAL_DATA = { firstName: '', lastName: '', phoneNumber: '', email: '' };
 
+/**
+ * NamesschildGenerator - Hauptkomponente
+ */
 function NamesschildGenerator() {
   const [data, setData] = useState(() => {
     try {
@@ -18,11 +22,17 @@ function NamesschildGenerator() {
 
   const [isExporting, setIsExporting] = useState(false);
 
+  // 🚀 Fonts beim App-Start vorladen (im Hintergrund)
+  useEffect(() => {
+    preloadFonts();
+  }, []);
+
+  // State in LocalStorage speichern
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     } catch (e) {
-      console.warn('LocalStorage nicht verfügbar:', e);
+      console.warn('LocalStorage nicht verfügbar');
     }
   }, [data]);
 
@@ -30,10 +40,6 @@ function NamesschildGenerator() {
     setData(newData);
   }, []);
 
-  /**
-   * Wrapper für async Export mit Loading-State
-   * @param {Function} exportFn - Async Export-Funktion
-   */
   const handleExport = useCallback(async (exportFn) => {
     setIsExporting(true);
     try {
@@ -63,21 +69,23 @@ function NamesschildGenerator() {
             onClick={() => handleExport(exportSinglePdf)}
             disabled={!canExport}
           >
-            {isExporting ? '⏳ Wird erstellt...' : '📥 Als PDF speichern'}
+            {isExporting ? '⏳ Erstelle PDF...' : '📥 Als PDF speichern'}
           </button>
           <button
             className="btn-export"
             onClick={() => handleExport(exportA4Pdf)}
             disabled={!canExport}
           >
-            {isExporting ? '⏳ Wird erstellt...' : '📄 A4 zum Drucken'}
+            {isExporting ? '⏳ Erstelle PDF...' : '📄 A4 zum Drucken'}
           </button>
         </div>
       </div>
 
       <footer className="site-footer">
         <p className="footer-credit">
-          Erstellt von Dominik für den tollsten Chor der Welt
+          Erstellt von Dominik für den tollsten Chor der Welt 🐥.
+          Dominik hat im LJC von 2012 bis 2026 mitgesungen
+          und war von 2017 bis 2025 Betreuer für Öffentlichkeitsarbeit.
         </p>
         <a href="https://github.com/" target="_blank" rel="noopener noreferrer" className="footer-link">
           GitHub Repository
