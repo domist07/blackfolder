@@ -1,10 +1,7 @@
 /**
- * PDF-Export Modul (Vektor-basiert)
+ * PDF-Export Modul (Vektor-basiert, mit Roboto-Einbettung)
  * 
- * Verwendet jsPDF's native Vektor-API für:
- * - Text als echte Schriftzeichen (nicht gerastert)
- * - Rechtecke und Linien als Vektoren
- * - Hintergrundfarbe als Vektor-Füllung
+ * Verwendet jsPDF's native Vektor-API mit eingebetteter Roboto-Schrift.
  * 
  * ⚠️ KEINE Canvas-Rasterung, KEINE html2canvas!
  * 
@@ -14,6 +11,21 @@
 import { jsPDF } from 'jspdf';
 import { PHYSICAL, PDF, COLORS, FONTS } from './constants.js';
 import { getStripesInMM } from './backgroundRenderer.js';
+import { registerFonts } from './fontLoader.js';
+
+/**
+ * Ermittelt den aktiven Font-Namen (Roboto oder Fallback)
+ * @param {jsPDF} doc - jsPDF-Instanz
+ * @returns {string} Font-Name
+ */
+function getActiveFont(doc) {
+  try {
+    doc.setFont(FONTS.PDF, 'normal');
+    return FONTS.PDF;
+  } catch {
+    return FONTS.PDF_FALLBACK;
+  }
+}
 
 /**
  * Berechnet die angepasste Schriftgröße für einen Text
@@ -22,15 +34,15 @@ import { getStripesInMM } from './backgroundRenderer.js';
  * @param {number} maxWidthMM - Maximale Breite in mm
  * @param {number} initialSizePt - Anfangs-Schriftgröße in pt
  * @param {string} fontStyle - 'bold' oder 'normal'
+ * @param {string} fontName - Font-Name
  * @returns {number} Angepasste Schriftgröße in pt
  */
-function calculateFittedFontSize(doc, text, maxWidthMM, initialSizePt, fontStyle = 'normal') {
+function calculateFittedFontSize(doc, text, maxWidthMM, initialSizePt, fontStyle = 'normal', fontName = FONTS.PDF) {
   let size = initialSizePt;
 
-  doc.setFont(FONTS.PDF, fontStyle);
+  doc.setFont(fontName, fontStyle);
   doc.setFontSize(size);
 
-  // Reduziere Größe in 0.5pt-Schritten bis der Text passt
   while (size > PDF.MIN_FONT_SIZE_PT) {
     doc.setFontSize(size);
     const textWidth = doc.getTextWidth(text);
@@ -71,8 +83,9 @@ function drawPdfStripes(doc) {
 /**
  * Zeichnet den Logo-Platzhalter
  * @param {jsPDF} doc - jsPDF-Instanz
+ * @param {string} fontName - Aktiver Font
  */
-function drawPdfLogoPlaceholder(doc) {
+function drawPdfLogoPlaceholder(doc, fontName) {
   const [r, g, b] = COLORS.LOGO_PLACEHOLDER_RGB;
   doc.setFillColor(r, g, b);
   doc.rect(
@@ -83,10 +96,9 @@ function drawPdfLogoPlaceholder(doc) {
     'F'
   );
 
-  // "LOGO" Text im Platzhalter
   doc.setFontSize(8);
   doc.setTextColor(200, 200, 200);
-  doc.setFont(FONTS.PDF, 'normal');
+  doc.setFont(fontName, 'normal');
   const logoText = 'LOGO';
   const logoTextWidth = doc.getTextWidth(logoText);
   doc.text(
@@ -97,100 +109,90 @@ function drawPdfLogoPlaceholder(doc) {
 }
 
 /**
- * Zeichnet den Text-Inhalt als Vektor-Text auf das PDF
+ * Zeichnet den Text-Inhalt als Vektor-Text
  * @param {jsPDF} doc - jsPDF-Instanz
  * @param {Object} data - Benutzerdaten
- * @param {string} data.firstName - Vorname
- * @param {string} data.lastName - Nachname
- * @param {string} data.phoneNumber - Telefonnummer
- * @param {string} data.email - E-Mail (mit "/" als Zeilenumbruch)
+ * @param {string} fontName - Aktiver Font-Name
+ * @param {number} [offsetX=0] - X-Verschiebung (für A4-Layout)
+ * @param {number} [offsetY=0] - Y-Verschiebung (für A4-Layout)
  */
-function drawPdfText(doc, data) {
+function drawPdfText(doc, data, fontName, offsetX = 0, offsetY = 0) {
   const [r, g, b] = COLORS.TEXT_WHITE_RGB;
   doc.setTextColor(r, g, b);
 
   let currentY = PHYSICAL.TOP_PADDING_MM;
   const x = PHYSICAL.LEFT_PADDING_MM;
 
-  // ===== Namen-Größe berechnen (einheitlich) =====
+  // ===== Einheitliche Namens-Größe =====
   let nameSize = PDF.NAME_FONT_SIZE_PT;
 
   if (data.firstName) {
-    const firstSize = calculateFittedFontSize(
-      doc, data.firstName, PHYSICAL.MAX_NAME_WIDTH_MM, PDF.NAME_FONT_SIZE_PT, 'bold'
-    );
-    nameSize = Math.min(nameSize, firstSize);
+    nameSize = Math.min(nameSize, calculateFittedFontSize(
+      doc, data.firstName, PHYSICAL.MAX_NAME_WIDTH_MM, PDF.NAME_FONT_SIZE_PT, 'bold', fontName
+    ));
   }
   if (data.lastName) {
-    const lastSize = calculateFittedFontSize(
-      doc, data.lastName, PHYSICAL.MAX_NAME_WIDTH_MM, PDF.NAME_FONT_SIZE_PT, 'bold'
-    );
-    nameSize = Math.min(nameSize, lastSize);
+    nameSize = Math.min(nameSize, calculateFittedFontSize(
+      doc, data.lastName, PHYSICAL.MAX_NAME_WIDTH_MM, PDF.NAME_FONT_SIZE_PT, 'bold', fontName
+    ));
   }
 
-  // pt → mm für Zeilenhöhe: 1pt ≈ 0.3528mm
-  const nameLineHeight = nameSize * 0.3528;
+  const nameLineHeight = nameSize * 0.3528; // pt → mm
 
-  // ===== Vorname ===== 
+  // Vorname
   if (data.firstName) {
-    doc.setFont(FONTS.PDF, 'bold');
+    doc.setFont(fontName, 'bold');
     doc.setFontSize(nameSize);
     currentY += nameLineHeight;
-    doc.text(data.firstName, x, currentY);
+    doc.text(data.firstName, offsetX + x, offsetY + currentY);
     currentY += PDF.LINE_SPACING_MM;
   }
 
-  // ===== Nachname =====
+  // Nachname
   if (data.lastName) {
-    doc.setFont(FONTS.PDF, 'bold');
+    doc.setFont(fontName, 'bold');
     doc.setFontSize(nameSize);
     currentY += nameLineHeight;
-    doc.text(data.lastName, x, currentY);
+    doc.text(data.lastName, offsetX + x, offsetY + currentY);
     currentY += PDF.LINE_SPACING_MM;
   }
 
-  // ===== Kontaktdaten-Größe berechnen (einheitlich) =====
+  // ===== Einheitliche Info-Größe =====
   let infoSize = PDF.INFO_FONT_SIZE_PT;
 
   if (data.phoneNumber) {
-    const phoneSize = calculateFittedFontSize(
-      doc, data.phoneNumber, PHYSICAL.MAX_INFO_WIDTH_MM, PDF.INFO_FONT_SIZE_PT, 'normal'
-    );
-    infoSize = Math.min(infoSize, phoneSize);
+    infoSize = Math.min(infoSize, calculateFittedFontSize(
+      doc, data.phoneNumber, PHYSICAL.MAX_INFO_WIDTH_MM, PDF.INFO_FONT_SIZE_PT, 'normal', fontName
+    ));
   }
-
   if (data.email) {
-    const emailLines = data.email.split('/').map(l => l.trim()).filter(Boolean);
-    emailLines.forEach(line => {
-      const lineSize = calculateFittedFontSize(
-        doc, line, PHYSICAL.MAX_INFO_WIDTH_MM, PDF.INFO_FONT_SIZE_PT, 'normal'
-      );
-      infoSize = Math.min(infoSize, lineSize);
+    data.email.split('/').map(l => l.trim()).filter(Boolean).forEach(line => {
+      infoSize = Math.min(infoSize, calculateFittedFontSize(
+        doc, line, PHYSICAL.MAX_INFO_WIDTH_MM, PDF.INFO_FONT_SIZE_PT, 'normal', fontName
+      ));
     });
   }
 
   const infoLineHeight = infoSize * 0.3528;
 
-  // ===== Telefonnummer =====
+  // Telefonnummer
   if (data.phoneNumber) {
-    doc.setFont(FONTS.PDF, 'normal');
+    doc.setFont(fontName, 'normal');
     doc.setFontSize(infoSize);
     currentY += infoLineHeight + 1;
-    doc.text(data.phoneNumber, x, currentY);
+    doc.text(data.phoneNumber, offsetX + x, offsetY + currentY);
     currentY += PDF.LINE_SPACING_MM;
   }
 
-  // ===== E-Mail (mit "/" als Umbruch) =====
+  // E-Mail
   if (data.email) {
     const emailLines = data.email.split('/').map(l => l.trim()).filter(Boolean);
-    doc.setFont(FONTS.PDF, 'normal');
+    doc.setFont(fontName, 'normal');
     doc.setFontSize(infoSize);
-
     emailLines.forEach(line => {
       currentY += infoLineHeight;
-      // Prüfe ob noch Platz auf dem Schild
       if (currentY < PHYSICAL.HEIGHT_MM - PHYSICAL.TOP_PADDING_MM) {
-        doc.text(line, x, currentY);
+        doc.text(line, offsetX + x, offsetY + currentY);
         currentY += 1;
       }
     });
@@ -198,41 +200,35 @@ function drawPdfText(doc, data) {
 }
 
 /**
- * Erstellt ein einzelnes Namensschild als Vektor-PDF
- * @param {Object} data - Benutzerdaten
- * @returns {jsPDF|null} PDF-Dokument oder null bei Fehler
- */
-function createSinglePdf(data) {
-  const doc = new jsPDF({
-    orientation: 'landscape',
-    unit: 'mm',
-    format: [PHYSICAL.HEIGHT_MM, PHYSICAL.WIDTH_MM], // [kürzere, längere Seite]
-    compress: true
-  });
-
-  drawPdfBackground(doc);
-  drawPdfStripes(doc);
-  drawPdfLogoPlaceholder(doc);
-  drawPdfText(doc, data);
-
-  return doc;
-}
-
-/**
- * Exportiert ein einzelnes Namensschild als PDF-Datei
+ * Exportiert ein einzelnes Namensschild als Vektor-PDF
  * @param {Object} data - Benutzerdaten
  */
-export function exportSinglePdf(data) {
+export async function exportSinglePdf(data) {
   if (!data.firstName && !data.lastName) {
     alert('Bitte mindestens Vor- oder Nachname eingeben.');
     return;
   }
 
   try {
-    const doc = createSinglePdf(data);
-    const fileName = `Namensschild_${data.firstName || 'Unbekannt'}_${data.lastName || 'Unbekannt'}.pdf`;
+    const doc = new jsPDF({
+      orientation: 'landscape',
+      unit: 'mm',
+      format: [PHYSICAL.HEIGHT_MM, PHYSICAL.WIDTH_MM],
+      compress: true
+    });
+
+    // ⚡ Font registrieren (async, gecacht nach erstem Aufruf)
+    await registerFonts(doc);
+    const fontName = getActiveFont(doc);
+
+    drawPdfBackground(doc);
+    drawPdfStripes(doc);
+    drawPdfLogoPlaceholder(doc, fontName);
+    drawPdfText(doc, data, fontName);
+
+    const fileName = `Namensschild_${data.firstName || 'X'}_${data.lastName || 'X'}.pdf`;
     doc.save(fileName);
-    console.log('✓ Einzelnes PDF exportiert:', fileName);
+    console.log('✓ PDF exportiert mit Font:', fontName);
   } catch (error) {
     console.error('PDF-Export Fehler:', error);
     alert('Fehler beim PDF-Export. Bitte erneut versuchen.');
@@ -240,10 +236,10 @@ export function exportSinglePdf(data) {
 }
 
 /**
- * Exportiert das Namensschild auf DIN A4 zum Drucken (mit Schnittmarkierungen)
+ * Exportiert das Namensschild auf DIN A4 mit Schnittmarkierungen
  * @param {Object} data - Benutzerdaten
  */
-export function exportA4Pdf(data) {
+export async function exportA4Pdf(data) {
   if (!data.firstName && !data.lastName) {
     alert('Bitte mindestens Vor- oder Nachname eingeben.');
     return;
@@ -257,26 +253,28 @@ export function exportA4Pdf(data) {
       compress: true
     });
 
-    // Position auf der A4-Seite (mit 10mm Rand)
+    // ⚡ Font registrieren
+    await registerFonts(doc);
+    const fontName = getActiveFont(doc);
+
     const offsetX = 10;
     const offsetY = 10;
     const w = PHYSICAL.WIDTH_MM;
     const h = PHYSICAL.HEIGHT_MM;
 
-    // === Hintergrund-Rechteck ===
+    // Hintergrund
     const [bgR, bgG, bgB] = COLORS.BACKGROUND_RGB;
     doc.setFillColor(bgR, bgG, bgB);
     doc.rect(offsetX, offsetY, w, h, 'F');
 
-    // === Dekorative Streifen (verschoben um Offset) ===
+    // Streifen
     const [strR, strG, strB] = COLORS.TEXT_WHITE_RGB;
     doc.setFillColor(strR, strG, strB);
-    const stripes = getStripesInMM();
-    stripes.forEach(stripe => {
+    getStripesInMM().forEach(stripe => {
       doc.rect(offsetX + stripe.x, offsetY, stripe.width, h, 'F');
     });
 
-    // === Logo-Platzhalter ===
+    // Logo-Platzhalter
     const [lgR, lgG, lgB] = COLORS.LOGO_PLACEHOLDER_RGB;
     doc.setFillColor(lgR, lgG, lgB);
     doc.rect(
@@ -287,122 +285,34 @@ export function exportA4Pdf(data) {
       'F'
     );
 
-    // === Text-Inhalte (mit Offset) ===
-    drawPdfTextWithOffset(doc, data, offsetX, offsetY);
+    // Text
+    drawPdfText(doc, data, fontName, offsetX, offsetY);
 
-    // === Schnittmarkierungen ===
-    const markLen = 4;
+    // Schnittmarkierungen
+    const m = 4;
     doc.setDrawColor(150, 150, 150);
     doc.setLineWidth(0.2);
 
-    // Oben links
-    doc.line(offsetX - markLen, offsetY, offsetX - 1, offsetY);
-    doc.line(offsetX, offsetY - markLen, offsetX, offsetY - 1);
-    // Oben rechts
-    doc.line(offsetX + w + 1, offsetY, offsetX + w + markLen, offsetY);
-    doc.line(offsetX + w, offsetY - markLen, offsetX + w, offsetY - 1);
-    // Unten links
-    doc.line(offsetX - markLen, offsetY + h, offsetX - 1, offsetY + h);
-    doc.line(offsetX, offsetY + h + 1, offsetX, offsetY + h + markLen);
-    // Unten rechts
-    doc.line(offsetX + w + 1, offsetY + h, offsetX + w + markLen, offsetY + h);
-    doc.line(offsetX + w, offsetY + h + 1, offsetX + w, offsetY + h + markLen);
+    doc.line(offsetX - m, offsetY, offsetX - 1, offsetY);
+    doc.line(offsetX, offsetY - m, offsetX, offsetY - 1);
+    doc.line(offsetX + w + 1, offsetY, offsetX + w + m, offsetY);
+    doc.line(offsetX + w, offsetY - m, offsetX + w, offsetY - 1);
+    doc.line(offsetX - m, offsetY + h, offsetX - 1, offsetY + h);
+    doc.line(offsetX, offsetY + h + 1, offsetX, offsetY + h + m);
+    doc.line(offsetX + w + 1, offsetY + h, offsetX + w + m, offsetY + h);
+    doc.line(offsetX + w, offsetY + h + 1, offsetX + w, offsetY + h + m);
 
-    // Schnitthinweis
+    // Hinweistext
     doc.setFontSize(9);
     doc.setTextColor(120, 120, 120);
-    doc.setFont(FONTS.PDF, 'normal');
+    doc.setFont(fontName, 'normal');
     doc.text('✂ Entlang der Markierungen ausschneiden', offsetX, offsetY + h + 12);
 
     const fileName = `Namensschild_${data.firstName || 'X'}_${data.lastName || 'X'}_A4.pdf`;
     doc.save(fileName);
-    console.log('✓ A4 PDF exportiert:', fileName);
+    console.log('✓ A4 PDF exportiert mit Font:', fontName);
   } catch (error) {
     console.error('A4-Export Fehler:', error);
     alert('Fehler beim A4-Export. Bitte erneut versuchen.');
-  }
-}
-
-/**
- * Zeichnet Text mit X/Y-Offset (für A4-Layout)
- * @param {jsPDF} doc - jsPDF-Instanz
- * @param {Object} data - Benutzerdaten
- * @param {number} offsetX - X-Verschiebung in mm
- * @param {number} offsetY - Y-Verschiebung in mm
- */
-function drawPdfTextWithOffset(doc, data, offsetX, offsetY) {
-  const [r, g, b] = COLORS.TEXT_WHITE_RGB;
-  doc.setTextColor(r, g, b);
-
-  let currentY = PHYSICAL.TOP_PADDING_MM;
-  const x = PHYSICAL.LEFT_PADDING_MM;
-
-  // Namen-Größe berechnen
-  let nameSize = PDF.NAME_FONT_SIZE_PT;
-  if (data.firstName) {
-    nameSize = Math.min(nameSize, calculateFittedFontSize(
-      doc, data.firstName, PHYSICAL.MAX_NAME_WIDTH_MM, PDF.NAME_FONT_SIZE_PT, 'bold'
-    ));
-  }
-  if (data.lastName) {
-    nameSize = Math.min(nameSize, calculateFittedFontSize(
-      doc, data.lastName, PHYSICAL.MAX_NAME_WIDTH_MM, PDF.NAME_FONT_SIZE_PT, 'bold'
-    ));
-  }
-
-  const nameLineHeight = nameSize * 0.3528;
-
-  if (data.firstName) {
-    doc.setFont(FONTS.PDF, 'bold');
-    doc.setFontSize(nameSize);
-    currentY += nameLineHeight;
-    doc.text(data.firstName, offsetX + x, offsetY + currentY);
-    currentY += PDF.LINE_SPACING_MM;
-  }
-
-  if (data.lastName) {
-    doc.setFont(FONTS.PDF, 'bold');
-    doc.setFontSize(nameSize);
-    currentY += nameLineHeight;
-    doc.text(data.lastName, offsetX + x, offsetY + currentY);
-    currentY += PDF.LINE_SPACING_MM;
-  }
-
-  // Kontaktdaten-Größe
-  let infoSize = PDF.INFO_FONT_SIZE_PT;
-  if (data.phoneNumber) {
-    infoSize = Math.min(infoSize, calculateFittedFontSize(
-      doc, data.phoneNumber, PHYSICAL.MAX_INFO_WIDTH_MM, PDF.INFO_FONT_SIZE_PT, 'normal'
-    ));
-  }
-  if (data.email) {
-    data.email.split('/').map(l => l.trim()).filter(Boolean).forEach(line => {
-      infoSize = Math.min(infoSize, calculateFittedFontSize(
-        doc, line, PHYSICAL.MAX_INFO_WIDTH_MM, PDF.INFO_FONT_SIZE_PT, 'normal'
-      ));
-    });
-  }
-
-  const infoLineHeight = infoSize * 0.3528;
-
-  if (data.phoneNumber) {
-    doc.setFont(FONTS.PDF, 'normal');
-    doc.setFontSize(infoSize);
-    currentY += infoLineHeight + 1;
-    doc.text(data.phoneNumber, offsetX + x, offsetY + currentY);
-    currentY += PDF.LINE_SPACING_MM;
-  }
-
-  if (data.email) {
-    const emailLines = data.email.split('/').map(l => l.trim()).filter(Boolean);
-    doc.setFont(FONTS.PDF, 'normal');
-    doc.setFontSize(infoSize);
-    emailLines.forEach(line => {
-      currentY += infoLineHeight;
-      if (currentY < PHYSICAL.HEIGHT_MM - PHYSICAL.TOP_PADDING_MM) {
-        doc.text(line, offsetX + x, offsetY + currentY);
-        currentY += 1;
-      }
-    });
   }
 }
