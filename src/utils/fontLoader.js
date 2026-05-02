@@ -1,23 +1,20 @@
 /**
  * Font-Loader für jsPDF
  * 
- * Lädt Roboto-TTF-Dateien, konvertiert sie zu Base64
+ * Lädt Roboto-TTF-Dateien, konvertiert zu Base64
  * und registriert sie im jsPDF Virtual File System.
- * 
- * @module fontLoader
  */
 
-/** Cache für geladene Font-Daten */
 let fontsLoaded = false;
 let fontCache = {
   regular: null,
-  bold: null
+  medium: null
 };
 
 /**
- * Konvertiert einen ArrayBuffer zu einem Base64-String
- * @param {ArrayBuffer} buffer - Font-Datei als ArrayBuffer
- * @returns {string} Base64-encodierter String
+ * Konvertiert ArrayBuffer zu Base64-String
+ * @param {ArrayBuffer} buffer
+ * @returns {string}
  */
 function arrayBufferToBase64(buffer) {
   const bytes = new Uint8Array(buffer);
@@ -29,9 +26,9 @@ function arrayBufferToBase64(buffer) {
 }
 
 /**
- * Lädt eine Font-Datei und gibt sie als Base64 zurück
+ * Lädt eine Font-Datei als Base64
  * @param {string} url - Pfad zur TTF-Datei
- * @returns {Promise<string>} Base64-String der Font-Datei
+ * @returns {Promise<string>}
  */
 async function fetchFontAsBase64(url) {
   const response = await fetch(url);
@@ -43,51 +40,46 @@ async function fetchFontAsBase64(url) {
 }
 
 /**
- * Lädt und registriert Roboto-Fonts in einer jsPDF-Instanz
+ * Registriert Roboto-Fonts in einer jsPDF-Instanz
  * 
- * Muss VOR dem ersten text()-Aufruf aufgerufen werden.
- * Fonts werden nach dem ersten Laden gecacht.
+ * Verwendet Roboto-Medium als "bold" Variante,
+ * da echtes Bold im PDF zu fett wirkt verglichen mit der Canvas-Vorschau.
  * 
  * @param {import('jspdf').jsPDF} doc - jsPDF-Instanz
- * @returns {Promise<void>}
- * 
- * @example
- * const doc = new jsPDF(...);
- * await registerFonts(doc);
- * doc.setFont('Roboto', 'bold');
- * doc.text('Hallo', 10, 10);
+ * @returns {Promise<boolean>} true wenn erfolgreich
  */
 export async function registerFonts(doc) {
-  // Fonts nur einmal laden, dann aus Cache
   if (!fontsLoaded) {
     try {
-      const [regular, bold] = await Promise.all([
+      const [regular, medium] = await Promise.all([
         fetchFontAsBase64('/fonts/Roboto-Regular.ttf'),
-        fetchFontAsBase64('/fonts/Roboto-Bold.ttf')
+        fetchFontAsBase64('/fonts/Roboto-Medium.ttf')
       ]);
       
       fontCache.regular = regular;
-      fontCache.bold = bold;
+      fontCache.medium = medium;
       fontsLoaded = true;
       
-      console.log('✓ Roboto Fonts geladen und gecacht');
+      console.log('✓ Roboto Fonts geladen (Regular + Medium)');
     } catch (error) {
-      console.error('⚠️ Font-Laden fehlgeschlagen, verwende Helvetica:', error);
-      return; // Fallback: Helvetica bleibt aktiv
+      console.error('⚠️ Font-Laden fehlgeschlagen:', error);
+      return false;
     }
   }
 
-  // Fonts im jsPDF Virtual File System registrieren
+  // Regular für Kontaktdaten
   doc.addFileToVFS('Roboto-Regular.ttf', fontCache.regular);
-  doc.addFileToVFS('Roboto-Bold.ttf', fontCache.bold);
-
-  // Fonts als verwendbare Schriftarten registrieren
   doc.addFont('Roboto-Regular.ttf', 'Roboto', 'normal');
-  doc.addFont('Roboto-Bold.ttf', 'Roboto', 'bold');
+
+  // Medium als "bold" — sieht näher am Canvas-Rendering aus als echtes Bold (700)
+  doc.addFileToVFS('Roboto-Medium.ttf', fontCache.medium);
+  doc.addFont('Roboto-Medium.ttf', 'Roboto', 'bold');
+
+  return true;
 }
 
 /**
- * Prüft ob Fonts bereits gecacht sind (für synchrone Prüfung)
+ * Prüft ob Fonts gecacht sind
  * @returns {boolean}
  */
 export function areFontsLoaded() {
