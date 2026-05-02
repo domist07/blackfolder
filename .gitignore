@@ -1,5 +1,6 @@
 *.json
 *.svg
+background.html
 
 node_modules/
 
