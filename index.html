@@ -5,10 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LJC Namensschild Generator</title>
     
-    <!-- Externe Bibliotheken -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    
-    <!-- Stylesheet -->
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -67,6 +64,7 @@
                         placeholder="max.mustermann@example.com"
                         maxlength="100"
                     >
+                    <span class="input-hint">Tipp: Verwende <strong>/</strong> für einen manuellen Zeilenumbruch</span>
                 </div>
             </form>
         </div>
@@ -74,25 +72,39 @@
         <!-- Vorschau-Seite -->
         <div class="preview-box">
             <h2>Vorschau</h2>
-            <span class="preview-label">Dein Namensschild (95 x 60 mm):</span>
+            <span class="preview-label">Dein Namensschild (95 × 60 mm):</span>
             <canvas id="previewCanvas" width="359" height="226"></canvas>
 
-            <!-- Export-Buttons -->
             <div class="export-buttons">
                 <button type="button" class="btn-export" id="exportSinglePdfBtn">
                     📥 Als PDF speichern
                 </button>
-                <button type="button" class="btn-export btn-export-print" id="exportA4PdfBtn">
+                <button type="button" class="btn-export" id="exportA4PdfBtn">
                     📄 Als A4 zum Drucken
                 </button>
             </div>
         </div>
-    </div>
 
-    <!-- JavaScript Module -->
+        <!-- Fußzeile als dritter Grid-Block -->
+        <footer class="site-footer">
+            <p class="footer-credit">
+                Erstellt von Dominik für den tollsten Chor der Welt 🐥.
+                Dominik hat im LJC von 2012 bis 2026 mitgesungen
+                und war von 2017 bis 2025 Betreuer für Öffentlichkeitsarbeit.
+            </p>
+            <a href="https://github.com/domist07/blackfolder" 
+               target="_blank" 
+               rel="noopener noreferrer" 
+               class="footer-link">
+                GitHub Repository
+            </a>
+        </footer>
+
     <script src="js/background.js"></script>
     <script src="js/canvas.js"></script>
     <script src="js/export.js"></script>
     <script src="js/app.js"></script>
+
+    </div>
 </body>
 </html>
