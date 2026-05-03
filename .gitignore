@@ -1,6 +1,7 @@
 *.json
 *.svg
 background.html
+.DS_Store
 
 node_modules/
 dist/
