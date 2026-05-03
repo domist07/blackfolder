@@ -27,12 +27,7 @@ function TextInputPanel({ data, onChange }) {
 
   return (
     <div className="content-box">
-      <h1 style={{ 
-        fontFamily: "'Roboto', sans-serif",
-        color: '#9d0000',
-        fontSize: '2rem',
-        marginBottom: '0.5rem'
-      }}>
+      <h1 className="title-heading">
         LJC-Namensschild
       </h1>
 

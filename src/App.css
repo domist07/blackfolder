@@ -278,3 +278,11 @@ body::before {
   color: var(--text-dark);
   font-weight: 600;
 }
+
+/* ===== Reusable Heading Style (like LJC-Namensschild) ===== */
+.title-heading {
+  font-family: var(--font-display);
+  color: var(--primary-color);
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}

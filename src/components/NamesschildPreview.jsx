@@ -160,14 +160,7 @@ function NamesschildPreview({ data }) {
 
   return (
     <div className="content-box preview-section">
-      <h2 style={{ 
-        fontFamily: "'Roboto', sans-serif",
-        color: '#9d0000',
-        fontSize: '2rem',
-        marginBottom: '0.5rem'
-      }}>
-        Vorschau
-      </h2>
+      <h1 className="title-heading">Vorschau</h1>
       <span className="preview-label">Dein Namensschild (95 × 60 mm):</span>
       
       <div className="preview-canvas-wrapper">

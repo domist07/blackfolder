@@ -10,14 +10,7 @@ import { preloadFonts } from '../utils/fontLoader';
 function PrintInstructions({ data, isExporting, handleExport, canExport }) {
   return (
     <div className="print-instructions">
-      <h2 style={{ 
-        fontFamily: "'Roboto', sans-serif",
-        color: '#9d0000',
-        fontSize: '2rem',
-        marginBottom: '0.5rem'
-      }}>
-        Druckanleitung
-      </h2>
+      <h1 className="title-heading">Druckanleitung</h1>
       <ol>
         <li>Alle Felder ausfüllen</li>
         <li><strong>„📄 A4 zum Drucken"</strong> klicken</li>
