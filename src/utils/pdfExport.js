@@ -1,0 +1,283 @@
+/**
+ * PDF-Export Modul
+ *
+ * Strategie (Hybrid):
+ *  - Hintergrund → renderBackground() aus backgroundRenderer.js
+ *                  → Canvas → PNG (beim ersten Export gecacht)
+ *                  → PDF als Bild-Layer
+ *  - Text        → jsPDF .text() als Vektor-Layer
+ *
+ * Vorteile:
+ *  - Hintergrund-Logik nur an einer Stelle (backgroundRenderer.js)
+ *  - Text bleibt scharf/durchsuchbar/kopierbar
+ *  - Background-Cache: zweiter Export dauert <5ms
+ *
+ * @module pdfExport
+ */
+
+import { jsPDF } from 'jspdf';
+import { PHYSICAL, PDF, COLORS, CANVAS } from './constants.js';
+import { renderBackground } from './backgroundRenderer.js';
+import { registerFonts } from './fontLoader.js';
+
+// ===== Hintergrund-Cache =====
+// Wird beim ersten Export einmalig erzeugt und danach wiederverwendet
+let backgroundImageCache = null;
+
+/**
+ * Rendert den Hintergrund auf ein Offscreen-Canvas und gibt
+ * das Ergebnis als PNG Data-URL zurück.
+ *
+ * Skalierungsfaktor bestimmt die Druckqualität:
+ *  - 3× → ~288 DPI  (gut für normalen Druck)
+ *  - 4× → ~384 DPI  (gut für hochwertigen Druck)
+ *
+ * @param {number} [scale=4] - Skalierungsfaktor
+ * @returns {string} PNG Data-URL (gecacht nach erstem Aufruf)
+ */
+function getBackgroundImage(scale = 4) {
+  if (backgroundImageCache) {
+    return backgroundImageCache;
+  }
+
+  const offscreen = document.createElement('canvas');
+  offscreen.width  = CANVAS.WIDTH  * scale;
+  offscreen.height = CANVAS.HEIGHT * scale;
+
+  const ctx = offscreen.getContext('2d');
+
+  // Auf Zielgröße skalieren, dann exakt denselben Code wie die Vorschau nutzen
+  ctx.scale(scale, scale);
+  renderBackground(ctx);
+
+  backgroundImageCache = offscreen.toDataURL('image/png');
+  console.log(`✓ Hintergrund gecacht (${offscreen.width}×${offscreen.height}px)`);
+
+  return backgroundImageCache;
+}
+
+// ===== Hilfsfunktionen =====
+
+/**
+ * Ermittelt den aktiven Font-Namen (Roboto oder Helvetica-Fallback)
+ * @param {jsPDF} doc
+ * @returns {string}
+ */
+function getActiveFont(doc) {
+  try {
+    doc.setFont('Roboto', 'normal');
+    return 'Roboto';
+  } catch {
+    console.warn('⚠️ Roboto nicht verfügbar, nutze Helvetica');
+    return 'helvetica';
+  }
+}
+
+/**
+ * Reduziert die Schriftgröße schrittweise bis der Text in maxWidthMM passt
+ *
+ * @param {jsPDF} doc
+ * @param {string} text
+ * @param {number} maxWidthMM
+ * @param {number} initialSizePt
+ * @param {string} fontStyle - 'bold' | 'normal'
+ * @param {string} fontName
+ * @returns {number} Angepasste Schriftgröße in pt
+ */
+function fitFontSize(doc, text, maxWidthMM, initialSizePt, fontStyle, fontName) {
+  let size = initialSizePt;
+  doc.setFont(fontName, fontStyle);
+
+  while (size > PDF.MIN_FONT_SIZE_PT) {
+    doc.setFontSize(size);
+    if (doc.getTextWidth(text) <= maxWidthMM) return size;
+    size -= 0.5;
+  }
+
+  return PDF.MIN_FONT_SIZE_PT;
+}
+
+/**
+ * Zeichnet alle Textinhalte als Vektor ins PDF
+ *
+ * @param {jsPDF} doc
+ * @param {Object} data     - { firstName, lastName, phoneNumber, email }
+ * @param {string} font     - Aktiver Font-Name
+ * @param {number} [ox=0]   - X-Offset in mm (für A4-Layout)
+ * @param {number} [oy=0]   - Y-Offset in mm (für A4-Layout)
+ */
+function drawText(doc, data, font, ox = 0, oy = 0) {
+  doc.setTextColor(...COLORS.TEXT_WHITE_RGB);
+
+  let y = PHYSICAL.TOP_PADDING_MM;
+  const x = PHYSICAL.LEFT_PADDING_MM;
+
+  // ===== Einheitliche Namens-Größe =====
+  let nameSize = PDF.NAME_FONT_SIZE_PT;
+
+  if (data.firstName) {
+    nameSize = Math.min(nameSize, fitFontSize(
+      doc, data.firstName, PHYSICAL.MAX_NAME_WIDTH_MM, nameSize, 'bold', font
+    ));
+  }
+  if (data.lastName) {
+    nameSize = Math.min(nameSize, fitFontSize(
+      doc, data.lastName, PHYSICAL.MAX_NAME_WIDTH_MM, nameSize, 'bold', font
+    ));
+  }
+
+  const nameLineH = nameSize * 0.3528; // pt → mm
+
+  // Vorname
+  if (data.firstName) {
+    doc.setFont(font, 'bold');
+    doc.setFontSize(nameSize);
+    y += nameLineH;
+    doc.text(data.firstName, ox + x, oy + y);
+    y += PDF.LINE_SPACING_MM;
+  }
+
+  // Nachname
+  if (data.lastName) {
+    doc.setFont(font, 'bold');
+    doc.setFontSize(nameSize);
+    y += nameLineH;
+    doc.text(data.lastName, ox + x, oy + y);
+    y += PDF.LINE_SPACING_MM;
+  }
+
+  // ===== Einheitliche Info-Größe =====
+  let infoSize = PDF.INFO_FONT_SIZE_PT;
+
+  if (data.phoneNumber) {
+    infoSize = Math.min(infoSize, fitFontSize(
+      doc, data.phoneNumber, PHYSICAL.MAX_INFO_WIDTH_MM, infoSize, 'normal', font
+    ));
+  }
+  if (data.email) {
+    data.email.split('/').map(l => l.trim()).filter(Boolean).forEach(line => {
+      infoSize = Math.min(infoSize, fitFontSize(
+        doc, line, PHYSICAL.MAX_INFO_WIDTH_MM, infoSize, 'normal', font
+      ));
+    });
+  }
+
+  const infoLineH = infoSize * 0.3528;
+
+  // Telefonnummer
+  if (data.phoneNumber) {
+    doc.setFont(font, 'normal');
+    doc.setFontSize(infoSize);
+    y += infoLineH + 1;
+    doc.text(data.phoneNumber, ox + x, oy + y);
+    y += PDF.LINE_SPACING_MM;
+  }
+
+  // E-Mail (mit "/" als Zeilenumbruch)
+  if (data.email) {
+    const lines = data.email.split('/').map(l => l.trim()).filter(Boolean);
+    doc.setFont(font, 'normal');
+    doc.setFontSize(infoSize);
+
+    for (const line of lines) {
+      y += infoLineH;
+      if (y < PHYSICAL.HEIGHT_MM - PHYSICAL.TOP_PADDING_MM) {
+        doc.text(line, ox + x, oy + y);
+        y += 1;
+      }
+    }
+  }
+}
+
+// ===== Öffentliche Export-Funktionen =====
+
+/**
+ * Exportiert einzelnes Namensschild als PDF
+ *
+ * @param {Object} data - Benutzerdaten
+ */
+export async function exportSinglePdf(data) {
+  if (!data.firstName && !data.lastName) {
+    alert('Bitte mindestens Vor- oder Nachname eingeben.');
+    return;
+  }
+
+  const doc = new jsPDF({
+    orientation: 'landscape',
+    unit: 'mm',
+    format: [PHYSICAL.HEIGHT_MM, PHYSICAL.WIDTH_MM],
+    compress: true
+  });
+
+  await registerFonts(doc);
+  const font = getActiveFont(doc);
+
+  // 1️⃣ Hintergrund als Bild (gecacht, identisch mit Vorschau)
+  const bgImage = getBackgroundImage();
+  doc.addImage(bgImage, 'PNG', 0, 0, PHYSICAL.WIDTH_MM, PHYSICAL.HEIGHT_MM);
+
+  // 2️⃣ Text als Vektor
+  drawText(doc, data, font);
+
+  const fileName = `Namensschild_${data.firstName || 'X'}_${data.lastName || 'X'}.pdf`;
+  doc.save(fileName);
+  console.log('✓ PDF gespeichert:', fileName);
+}
+
+/**
+ * Exportiert auf DIN A4 zum Drucken (mit Schnittmarkierungen)
+ *
+ * @param {Object} data - Benutzerdaten
+ */
+export async function exportA4Pdf(data) {
+  if (!data.firstName && !data.lastName) {
+    alert('Bitte mindestens Vor- oder Nachname eingeben.');
+    return;
+  }
+
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4',
+    compress: true
+  });
+
+  await registerFonts(doc);
+  const font = getActiveFont(doc);
+
+  const ox = 10;
+  const oy = 10;
+  const w  = PHYSICAL.WIDTH_MM;
+  const h  = PHYSICAL.HEIGHT_MM;
+
+  // 1️⃣ Hintergrund als Bild (gecacht, identisch mit Vorschau)
+  const bgImage = getBackgroundImage();
+  doc.addImage(bgImage, 'PNG', ox, oy, w, h);
+
+  // 2️⃣ Text als Vektor
+  drawText(doc, data, font, ox, oy);
+
+  // 3️⃣ Schnittmarkierungen
+  const m = 4;
+  doc.setDrawColor(150, 150, 150);
+  doc.setLineWidth(0.2);
+
+  doc.line(ox - m, oy,     ox - 1, oy    );  // oben links  – horizontal
+  doc.line(ox,     oy - m, ox,     oy - 1);  // oben links  – vertikal
+  doc.line(ox + w + 1, oy,     ox + w + m, oy    );  // oben rechts – horizontal
+  doc.line(ox + w,     oy - m, ox + w,     oy - 1);  // oben rechts – vertikal
+  doc.line(ox - m, oy + h, ox - 1,     oy + h    );  // unten links  – horizontal
+  doc.line(ox,     oy + h + 1, ox,     oy + h + m);  // unten links  – vertikal
+  doc.line(ox + w + 1, oy + h, ox + w + m, oy + h    );  // unten rechts – horizontal
+  doc.line(ox + w,     oy + h + 1, ox + w, oy + h + m);  // unten rechts – vertikal
+
+  // Hinweistext
+  doc.setFontSize(9);
+  doc.setTextColor(120, 120, 120);
+  doc.setFont(font, 'normal');
+  doc.text('✂ Entlang der Markierungen ausschneiden', ox, oy + h + 12);
+
+  const fileName = `Namensschild_${data.firstName || 'X'}_${data.lastName || 'X'}_A4.pdf`;
+  doc.save(fileName);
+  console.log('✓ A4 PDF gespeichert:', fileName);
+}

@@ -1,20 +1,31 @@
 /**
  * Background Renderer
  * 
- * Zeichnet den LJC-Hintergrund mit Logo und Streifen
- * auf das Canvas
-
+ * Zeichnet den LJC-Hintergrund mit Logo und dekorativen Streifen
+ * auf ein Canvas-2D-Context.
+ * 
+ * @module backgroundRenderer
  */
+
+import { CANVAS, COLORS } from './constants.js';
 
 /**
- * Rendert den kompletten Hintergrund
+ * Zeichnet den roten Hintergrund
  * @param {CanvasRenderingContext2D} ctx - Canvas-Kontext
-
  */
-function renderBackground(ctx) {
-	ctx.save();
-	ctx.transform(1.000000, 0.000000, 0.000000, 1.000000, 0.000000, -14.000000);
-	
+function drawBackground(ctx) {
+  ctx.fillStyle = COLORS.BACKGROUND;
+  ctx.fillRect(0, 0, CANVAS.WIDTH, CANVAS.HEIGHT);
+}
+
+/**
+ * Zeichnet das LJC-Logo (weiße Vektor-Pfade)
+ * @param {CanvasRenderingContext2D} ctx - Canvas-Kontext
+ */
+function drawLogo(ctx) {
+  ctx.save();
+  ctx.transform(1.0, 0.0, 0.0, 1.0, 0.0, -14.0);
+
 // #Background color
 	ctx.beginPath();
 	ctx.fillStyle = 'rgb(157, 0, 0)';
@@ -909,6 +920,15 @@ function renderBackground(ctx) {
 	ctx.miterLimit = 4;
 	ctx.rect(294.153020, 14.000000, 0.589000, 226.771000);
 	ctx.fill();
-	ctx.restore();
 
+  ctx.restore();
+}
+
+/**
+ * Rendert den kompletten Hintergrund (Farbe + Logo + Streifen)
+ * @param {CanvasRenderingContext2D} ctx - Canvas-Kontext
+ */
+export function renderBackground(ctx) {
+  drawBackground(ctx);
+  drawLogo(ctx);
 }

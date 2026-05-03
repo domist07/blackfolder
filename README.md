@@ -1,141 +1,231 @@
-# LJC-Namensschild Generator
+### 🎵 LJC Namensschild Generator
 
-Erstelle dein eigenes Landesjugendchor Namensschild für deine Notenmappe — direkt im Browser, ohne Installation.
+> Erstelle personalisierte Namensschilder für den Landesjugendchor – direkt im Browser, als druckfertiges Vektor-PDF.
 
-## Vorschau
+---
 
-Eine interaktive Web-Anwendung zur Generierung personalisierter Namensschilder im LJC-Design mit Live-Vorschau und PDF-Export in Druckqualität.
+#### ✨ Features
 
-## Features
 
-- Live-Vorschau während der Eingabe
-- Automatische Schriftgrößenanpassung bei langen Namen
-- Manueller Zeilenumbruch in der E-Mail-Zeile (mit /)
-- PDF-Export in 600 DPI (Druckqualität)
-- Export als einzelnes Namensschild (95 × 60 mm)
-- Export als DIN A4 mit Schnittmarkierungen
-- Responsive Design (Desktop, Tablet, Mobil)
-- Automatische Speicherung im Browser (LocalStorage)
-- Keine Serveranbindung, keine Datenübertragung
+- **Live-Vorschau** – Echtzeit-Rendering während der Eingabe
+- **Vektor-PDF-Export** – Text bleibt scharf bei jeder Zoomstufe, durchsuchbar & kopierbar
+- **Automatische Schriftanpassung** – Text wird dynamisch verkleinert, wenn er zu breit wird
+- **Offline-fähig** – Eingaben werden im LocalStorage gespeichert
+- **Zwei Export-Modi** – Einzelnes Namensschild oder A4-Druckvorlage mit Schnittmarkierungen
+- **Custom Font** – Roboto wird direkt ins PDF eingebettet
 
-## Design-Philosophie
+---
 
-### Visuelles Konzept
+#### 📐 Design-Spezifikationen
 
-Das Design orientiert sich am Corporate Design des Landesjugendchors Baden-Württemberg. Die Farbpalette beschränkt sich auf Rot (#9d0000) und ein aufgehelltes Rot (#b13333), ergänzt durch Weiß für Text und UI-Elemente.
+| Eigenschaft      | Wert                          |
+|------------------|-------------------------------|
+| Format           | 95 × 60 mm (Querformat)       |
+| Hintergrund      | LJC-Rot `#9d0000`             |
+| Schriftfarbe     | Weiß `#FFFFFF`                |
+| Schriftart       | Roboto (Regular + Medium)     |
+| Vor-/Nachname    | 36pt, fett, max. 65 mm breit  |
+| Kontaktdaten     | 14pt, normal, max. 50 mm breit|
+| Min. Schriftgröße| 8pt                           |
 
-Der Seitenhintergrund besteht aus vertikalen Streifen, die das LJC-Branding subtil aufgreifen, ohne vom Inhalt abzulenken.
+---
 
-### Typografie-Regeln
+#### 🎨 Design Philosophy
 
-- Vor- und Nachname: Startgröße 40pt, bold, maximal 65mm breit
-- Rufnummer und E-Mail: Startgröße 24pt, regular, maximal 50mm breit
-- Vorname wird nie kleiner als der Nachname dargestellt
-- Rufnummer und E-Mail haben immer die gleiche Schriftgröße
-- Alle Texte sind linksbündig mit 5mm Abstand zum linken Rand
+##### 1. Single Source of Truth
 
-### Schriftgrößen-Algorithmus
-
-1. Berechne individuelle Schriftgröße für Vorname und Nachname basierend auf maximaler Breite (65mm)
-2. Verwende die kleinere der beiden Größen für beide Namen
-3. Berechne individuelle Schriftgröße für Rufnummer und jede E-Mail-Zeile basierend auf maximaler Breite (50mm)
-4. Verwende die kleinste Größe für alle Kontaktdaten
-
-### Architektur
-
-Die Anwendung folgt dem Prinzip der Separation of Concerns:
-
-- index.html — Struktur und Semantik
-- css/styles.css — Präsentation und Layout
-- js/background.js — Statischer Namensschild-Hintergrund (Canvas-Pfade)
-- js/canvas.js — Text-Rendering und Schriftgrößenberechnung
-- js/export.js — PDF-Generierung mit 600 DPI
-- js/app.js — Anwendungslogik, Events und State-Management
-
-### Exportqualität
-
-Der PDF-Export rendert das Namensschild intern auf einem hochaufgelösten Off-Screen-Canvas (2244 × 1417 px bei 600 DPI) und komprimiert das Ergebnis als JPEG (92% Qualität). Das ergibt scharfe Druckergebnisse bei kompakter Dateigröße.
-
-## Projektstruktur
+Der Hintergrund (Logo, Streifen, rote Fläche) wird **einmal** in `backgroundRenderer.js` definiert und sowohl für die Canvas-Vorschau als auch für den PDF-Export verwendet. Keine doppelte Pflege, keine Abweichungen.
 
 ```
-ljc-namensschild/
-├── index.html
-├── css/
-│   └── styles.css
-├── js/
-│   ├── background.js
-│   ├── canvas.js
-│   ├── export.js
-│   └── app.js
-└── README.md
+backgroundRenderer.js
+        │
+        ├──→ Canvas-Vorschau (Live)
+        │
+        └──→ PDF-Export (gecachtes Bild)
 ```
 
-## Installation
+##### 2. Hybrid-Rendering im PDF
 
-### Voraussetzungen
+| Layer       | Technik                       | Warum                              |
+|-------------|-------------------------------|------------------------------------|
+| Hintergrund | PNG aus Canvas (gecacht)      | Komplexe Bezier-Pfade des Logos    |
+| Text        | jsPDF `.text()` Vektor-API    | Scharf, durchsuchbar, editierbar   |
 
-- Ein moderner Webbrowser (Chrome, Firefox, Safari, Edge)
-- Keine weiteren Abhängigkeiten, kein Build-Prozess, kein Node.js
+→ Bester Kompromiss zwischen visueller Treue und Textqualität.
 
-### Lokales Ausführen
+##### 3. Responsive Typography
 
-1. Repository klonen
+Alle Textfelder passen sich automatisch an:
+
+```
+Eingabe: "Maximilian-Alexander"
+            │
+            ▼
+measureText() → zu breit?
+            │
+            ├── Nein → Standardgröße verwenden
+            │
+            └── Ja → Größe in 0.5pt-Schritten reduzieren
+                    (bis min. 8pt)
+```
+
+Vor- und Nachname teilen sich immer dieselbe Schriftgröße – der längere Name bestimmt die Größe für beide.
+
+##### 4. CSS-Variablen für Theming
+
+Alle Farben sind als CSS Custom Properties definiert. Die Website-Notenlinien nutzen `color-mix()` mit den Projektvariablen – kein Hardcoding von Farbwerten außerhalb von `:root`.
+
+```js
+--primary-color: #9d0000;
+--primary-light: #b13333;
+--notenlinie: color-mix(in srgb, var(--primary-light) 20%, transparent);
+```
+
+##### 5. Performance-First Export
+
+
+- Fonts werden beim App-Start im Hintergrund vorgeladen (`preloadFonts()` in `useEffect`)
+- Der gerenderte Hintergrund wird nach dem ersten Export als Data-URL gecacht
+
+- Erster Export: ~80ms – Zweiter Export: ~15ms (Cache-Hit)
+
+---
+
+#### 🛠️ Tech Stack
+
+| Technologie                                                        | Zweck                          |
+|--------------------------------------------------------------------|--------------------------------|
+| [React 18](https://react.dev)                                      | UI-Komponenten & State         |
+| [Vite 5](https://vitejs.dev)                                       | Build-Tool & Dev-Server        |
+| [jsPDF](https://github.com/parallax/jsPDF)                         | PDF-Generierung                |
+| [Google Fonts – Roboto](https://fonts.google.com/specimen/Roboto)  | Schriftart in der Vorschau     |
+| Canvas 2D API                                                      | Live-Vorschau & Text-Messung   |
+
+---
+
+#### 📦 Installation
+
+##### Voraussetzungen
+
+- [Node.js](https://nodejs.org/) ≥ 18.x
+- npm ≥ 9.x
+
+##### Schritte
+
+**1. Repository klonen**
 
 ```bash
-git clone https://github.com/TODO_PLATZHALTER_REPO/ljc-namensschild.git
+git clone https://github.com/DEIN-USERNAME/ljc-namensschild-generator.git
+cd ljc-namensschild-generator
 ```
 
-2. In das Verzeichnis wechseln
+**2. Dependencies installieren**
 
 ```bash
-cd ljc-namensschild
+npm install
 ```
 
-3. Einen lokalen Server starten (beliebige Methode)
+**3. Font-Dateien herunterladen**
 
-Mit Python 3:
+Lade das Roboto-Paket von [Google Fonts](https://fonts.google.com/specimen/Roboto) herunter
+(Button „Download family") und lege folgende Dateien ab:
+
+```
+public/fonts/Roboto-Regular.ttf
+public/fonts/Roboto-Medium.ttf
+```
+
+**4. Entwicklungsserver starten**
+
 ```bash
-python -m http.server 8000
+npm run dev
 ```
 
-Mit Node.js (npx):
+Der Browser öffnet automatisch `http://localhost:3000`.
+
+##### Produktion
+
+Optimiertes Build erstellen:
+
 ```bash
-npx serve .
+npm run build
 ```
 
-Mit VS Code:
-Live Server Extension installieren und index.html öffnen
+Build lokal testen:
 
-4. Im Browser öffnen
-
-```
-http://localhost:8000
+```bash
+npm run preview
 ```
 
-### Hinweis
+Das Ergebnis liegt in `dist/` und kann auf jedem statischen Hosting deployed werden
+(Netlify, Vercel, GitHub Pages).
 
-Die Anwendung kann auch direkt als Datei geöffnet werden (index.html doppelklicken), allerdings laden manche Browser externe Scripts (jsPDF) nicht im file://-Protokoll. Ein lokaler Server wird empfohlen.
+---
 
-## Verwendung
+#### 📂 Projektstruktur
 
-1. Vorname und Nachname eingeben (Pflichtfelder)
-2. Optional: Rufnummer eingeben
-3. Optional: E-Mail eingeben — für einen manuellen Zeilenumbruch ein / einfügen
-4. Die Vorschau aktualisiert sich automatisch bei jeder Eingabe
-5. PDF herunterladen über einen der beiden Export-Buttons
+```
+ljc-namensschild-generator/
+├── index.html                        Einstiegspunkt + Google Fonts Link
+├── package.json
+├── vite.config.js
+├── public/
+│   └── fonts/
+│       ├── Roboto-Regular.ttf        Für PDF-Einbettung (manuell ablegen)
+│       └── Roboto-Medium.ttf         Für PDF-Einbettung (manuell ablegen)
+└── src/
+    ├── main.jsx                      React-Mounting
+    ├── App.jsx                       Root-Komponente
+    ├── App.css                       Globale Styles + Notenlinien-Hintergrund
+    ├── components/
+    │   ├── NamesschildGenerator.jsx  Orchestrierung, State, Export-Trigger
+    │   ├── NamesschildPreview.jsx    Canvas Live-Vorschau
+    │   └── TextInputPanel.jsx        Formular-Eingaben
+    └── utils/
+        ├── constants.js              Alle Maße, Farben & Konfiguration
+        ├── backgroundRenderer.js     Canvas-Hintergrund (Logo + Streifen)
+        ├── fontLoader.js             TTF → Base64 → jsPDF VFS
+        └── pdfExport.js              PDF-Generierung (Hybrid-Ansatz)
+```
 
-## Technologien
+---
 
-- HTML5 Canvas API für Rendering
-- CSS Grid und Flexbox für responsives Layout
-- Vanilla JavaScript (ES6+, keine Frameworks)
-- jsPDF 2.5.1 für PDF-Generierung (CDN)
-- LocalStorage für clientseitige Datenpersistenz
+#### 🔧 Konfiguration
 
-## Browser-Kompatibilität
+##### Fonts austauschen
 
-- Chrome 80+
-- Firefox 78+
-- Safari 14+
-- Edge 80+
+
+1. Neue `.ttf`-Dateien in `public/fonts/` ablegen
+2. Dateinamen in `src/utils/fontLoader.js` anpassen
+
+3. `FONTS.PREVIEW` in `src/utils/constants.js` ändern
+4. Google Fonts `<link>` in `index.html` aktualisieren
+
+##### Hintergrund ändern
+
+`src/utils/backgroundRenderer.js` editieren. Die Funktion `renderBackground(ctx)` zeichnet
+auf einen Standard Canvas-2D-Kontext. Änderungen sind sofort in der Vorschau **und** im
+PDF-Export sichtbar – da beide dieselbe Funktion nutzen.
+
+> Nach Hintergrund-Änderungen im Dev-Betrieb ggf. `clearBackgroundCache()` aus
+> `pdfExport.js` aufrufen, damit der PDF-Cache neu aufgebaut wird.
+
+##### Maße anpassen
+
+Alle physischen Maße sind zentral in `src/utils/constants.js` unter `PHYSICAL` definiert.
+Änderungen dort wirken sich automatisch auf Vorschau und PDF aus.
+
+---
+
+#### 🖨️ Druckanleitung
+
+
+1. Alle Felder ausfüllen
+2. **„📄 A4 zum Drucken"** klicken
+3. PDF öffnen und drucken mit:
+
+   - Skalierung: **100% / Tatsächliche Größe**
+   - ⚠️ „An Seite anpassen" muss deaktiviert sein
+
+4. Entlang der grauen Schnittmarkierungen ausschneiden
+5. Fertig – in die Notenmappe einlegen
