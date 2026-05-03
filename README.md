@@ -8,7 +8,7 @@
 
 
 - **Live-Vorschau** – Echtzeit-Rendering während der Eingabe
-- **Vektor-PDF-Export** – Text bleibt scharf bei jeder Zoomstufe, durchsuchbar & kopierbar
+- **Hybrid-PDF-Export** – Hintergrund als gerendertes Bild (Logo mit Bezier-Pfaden), Text als echter Vektor (scharf, durchsuchbar & kopierbar)
 - **Automatische Schriftanpassung** – Text wird dynamisch verkleinert, wenn er zu breit wird
 - **Offline-fähig** – Eingaben werden im LocalStorage gespeichert
 - **Zwei Export-Modi** – Einzelnes Namensschild oder A4-Druckvorlage mit Schnittmarkierungen
@@ -39,16 +39,16 @@ Der Hintergrund (Logo, Streifen, rote Fläche) wird **einmal** in `backgroundRen
 ```
 backgroundRenderer.js
         │
-        ├──→ Canvas-Vorschau (Live)
+        ├──→ Canvas-Vorschau (Live, direkte Zeichnung)
         │
-        └──→ PDF-Export (gecachtes Bild)
+        └──→ PDF-Export (Canvas → PNG → PDF als Bild-Layer)
 ```
 
 ##### 2. Hybrid-Rendering im PDF
 
 | Layer       | Technik                       | Warum                              |
 |-------------|-------------------------------|------------------------------------|
-| Hintergrund | PNG aus Canvas (gecacht)      | Komplexe Bezier-Pfade des Logos    |
+| Hintergrund | Canvas → PNG (gecacht)        | Komplexe Bezier-Pfade des Logos    |
 | Text        | jsPDF `.text()` Vektor-API    | Scharf, durchsuchbar, editierbar   |
 
 → Bester Kompromiss zwischen visueller Treue und Textqualität.
@@ -85,9 +85,9 @@ Alle Farben sind als CSS Custom Properties definiert. Die Website-Notenlinien nu
 
 
 - Fonts werden beim App-Start im Hintergrund vorgeladen (`preloadFonts()` in `useEffect`)
-- Der gerenderte Hintergrund wird nach dem ersten Export als Data-URL gecacht
+- Der gerenderte Hintergrund wird nach dem ersten Export als PNG gecacht (Canvas → PNG → PDF)
 
-- Erster Export: ~80ms – Zweiter Export: ~15ms (Cache-Hit)
+- Erster Export: ~80ms – Zweiter Export: ~15ms (Cache-Hit für Hintergrundbild)
 
 ---
 
@@ -125,17 +125,7 @@ cd ljc-namensschild-generator
 npm install
 ```
 
-**3. Font-Dateien herunterladen**
-
-Lade das Roboto-Paket von [Google Fonts](https://fonts.google.com/specimen/Roboto) herunter
-(Button „Download family") und lege folgende Dateien ab:
-
-```
-public/fonts/Roboto-Regular.ttf
-public/fonts/Roboto-Medium.ttf
-```
-
-**4. Entwicklungsserver starten**
+**3. Entwicklungsserver starten**
 
 ```bash
 npm run dev
@@ -170,9 +160,10 @@ ljc-namensschild-generator/
 ├── package.json
 ├── vite.config.js
 ├── public/
+    ├── favicon.svg                   Favicon
 │   └── fonts/
-│       ├── Roboto-Regular.ttf        Für PDF-Einbettung (manuell ablegen)
-│       └── Roboto-Medium.ttf         Für PDF-Einbettung (manuell ablegen)
+│       ├── Roboto-Regular.ttf        Für PDF-Einbettung
+│       └── Roboto-Medium.ttf         Für PDF-Einbettung
 └── src/
     ├── main.jsx                      React-Mounting
     ├── App.jsx                       Root-Komponente
@@ -195,7 +186,7 @@ ljc-namensschild-generator/
 ##### Fonts austauschen
 
 
-1. Neue `.ttf`-Dateien in `public/fonts/` ablegen
+1. Neue `.ttf`-Dateien in `public/fonts/` ablegen (überschreibt die im Repository enthaltenen Roboto-Fonts)
 2. Dateinamen in `src/utils/fontLoader.js` anpassen
 
 3. `FONTS.PREVIEW` in `src/utils/constants.js` ändern
