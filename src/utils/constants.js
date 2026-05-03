@@ -17,10 +17,6 @@ export const PHYSICAL = {
   LOGO_SIZE_MM: 20
 };
 
-// ===== Umrechnungsfaktor =====
-/** 1mm ≈ 3.7795px bei 96 DPI */
-export const MM_TO_PX = 3.7795;
-
 // ===== Canvas-Konstanten (Pixel, basierend auf ~95mm × 60mm) =====
 export const CANVAS = {
   WIDTH: 359,           // 95mm × 3.7795
@@ -48,9 +44,7 @@ export const COLORS = {
   BACKGROUND: '#9d0000',
   BACKGROUND_RGB: [157, 0, 0],
   TEXT_WHITE: '#ffffff',
-  TEXT_WHITE_RGB: [255, 255, 255],
-  LOGO_PLACEHOLDER: '#666666',
-  LOGO_PLACEHOLDER_RGB: [102, 102, 102]
+  TEXT_WHITE_RGB: [255, 255, 255]
 };
 
 // ===== Schriftarten =====

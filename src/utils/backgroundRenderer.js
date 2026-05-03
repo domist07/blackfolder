@@ -932,20 +932,3 @@ export function renderBackground(ctx) {
   drawBackground(ctx);
   drawLogo(ctx);
 }
-
-/**
- * Gibt die Streifen-Positionen in mm zurück (für PDF-Export)
- * Konvertiert Canvas-Pixel → physische mm
- * @returns {Array<{x: number, width: number}>} Streifen-Positionen in mm
- */
-export function getStripesInMM() {
-  const pxToMm = 95 / 359; // Canvas-Breite zu physischer Breite
-  
-  const stripePixels = [294.153, 299.346, 304.540, 309.733, 314.926];
-  const stripeWidth = 0.589 * pxToMm;
-  
-  return stripePixels.map(px => ({
-    x: px * pxToMm,
-    width: stripeWidth
-  }));
-}

@@ -16,7 +16,7 @@
  */
 
 import { jsPDF } from 'jspdf';
-import { PHYSICAL, PDF, COLORS, FONTS, CANVAS } from './constants.js';
+import { PHYSICAL, PDF, COLORS, CANVAS } from './constants.js';
 import { renderBackground } from './backgroundRenderer.js';
 import { registerFonts } from './fontLoader.js';
 
@@ -54,13 +54,6 @@ function getBackgroundImage(scale = 4) {
   console.log(`✓ Hintergrund gecacht (${offscreen.width}×${offscreen.height}px)`);
 
   return backgroundImageCache;
-}
-
-/**
- * Cache manuell leeren (z. B. nach Design-Änderungen im Dev-Modus)
- */
-export function clearBackgroundCache() {
-  backgroundImageCache = null;
 }
 
 // ===== Hilfsfunktionen =====
