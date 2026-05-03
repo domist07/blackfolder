@@ -12,7 +12,7 @@
 - **Automatische Schriftanpassung** – Text wird dynamisch verkleinert, wenn er zu breit wird
 - **Offline-fähig** – Eingaben werden im LocalStorage gespeichert
 - **Zwei Export-Modi** – Einzelnes Namensschild oder A4-Druckvorlage mit Schnittmarkierungen
-- **Custom Font** – Roboto wird direkt ins PDF eingebettet
+- **Custom Font** – Roboto wird von Google Fonts CDN geladen und direkt ins PDF eingebettet
 
 ---
 
@@ -102,7 +102,7 @@ Alle Farben sind als CSS Custom Properties definiert.
 | [React 18](https://react.dev)                                      | UI-Komponenten & State         |
 | [Vite 5](https://vitejs.dev)                                       | Build-Tool & Dev-Server        |
 | [jsPDF](https://github.com/parallax/jsPDF)                         | PDF-Generierung                |
-| [Google Fonts – Roboto](https://fonts.google.com/specimen/Roboto)  | Schriftart in der Vorschau     |
+| [Google Fonts – Roboto](https://fonts.google.com/specimen/Roboto)  | Schriftart in der Vorschau & PDF |
 | Canvas 2D API                                                      | Live-Vorschau & Text-Messung   |
 
 ---
@@ -163,11 +163,8 @@ ljc-namensschild-generator/
 ├── index.html                        Einstiegspunkt + Google Fonts Link
 ├── package.json
 ├── vite.config.js
-├── public/
-    ├── favicon.svg                   Favicon
-│   └── fonts/
-│       ├── Roboto-Regular.ttf        Für PDF-Einbettung
-│       └── Roboto-Medium.ttf         Für PDF-Einbettung
+└── public/
+    └── favicon.svg                   Favicon
 └── src/
     ├── main.jsx                      React-Mounting
     ├── App.jsx                       Root-Komponente
@@ -187,14 +184,12 @@ ljc-namensschild-generator/
 
 #### 🔧 Konfiguration
 
-##### Fonts austauschen
+##### Fonts anpassen
 
+Die Schriftart Roboto wird von Google Fonts CDN geladen. Um die Schriftart zu ändern:
 
-1. Neue `.ttf`-Dateien in `public/fonts/` ablegen (überschreibt die im Repository enthaltenen Roboto-Fonts)
-2. Dateinamen in `src/utils/fontLoader.js` anpassen
-
-3. `FONTS.PREVIEW` in `src/utils/constants.js` ändern
-4. Google Fonts `<link>` in `index.html` aktualisieren
+1. Google Fonts `<link>` in `index.html` anpassen
+2. Die URLs in `src/utils/fontLoader.js` (`FONT_URLS`) auf die neuen Font-Dateien ändern
 
 ##### Hintergrund ändern
 
