@@ -7,7 +7,7 @@ import { preloadFonts } from '../utils/fontLoader';
 /**
  * PrintInstructions - Component showing printing instructions
  */
-function PrintInstructions() {
+function PrintInstructions({ data, isExporting, handleExport, canExport }) {
   return (
     <div className="print-instructions">
       <h2>Druckanleitung</h2>
@@ -23,6 +23,23 @@ function PrintInstructions() {
         <li>Entlang der grauen Schnittmarkierungen ausschneiden</li>
         <li>Fertig – in die Notenmappe einlegen</li>
       </ol>
+
+      <div className="export-buttons" style={{ marginTop: '1.5rem' }}>
+        <button
+          className="btn-export"
+          onClick={() => handleExport(exportSinglePdf)}
+          disabled={!canExport}
+        >
+          {isExporting ? '⏳ Erstelle PDF...' : '📥 Als PDF speichern'}
+        </button>
+        <button
+          className="btn-export"
+          onClick={() => handleExport(exportA4Pdf)}
+          disabled={!canExport}
+        >
+          {isExporting ? '⏳ Erstelle PDF...' : '📄 A4 zum Drucken'}
+        </button>
+      </div>
     </div>
   );
 }
@@ -81,26 +98,9 @@ function NamesschildGenerator() {
 
       <div>
         <NamesschildPreview data={data} />
-
-        <div className="export-buttons" style={{ marginTop: '1.5rem' }}>
-          <button
-            className="btn-export"
-            onClick={() => handleExport(exportSinglePdf)}
-            disabled={!canExport}
-          >
-            {isExporting ? '⏳ Erstelle PDF...' : '📥 Als PDF speichern'}
-          </button>
-          <button
-            className="btn-export"
-            onClick={() => handleExport(exportA4Pdf)}
-            disabled={!canExport}
-          >
-            {isExporting ? '⏳ Erstelle PDF...' : '📄 A4 zum Drucken'}
-          </button>
-        </div>
       </div>
 
-      <PrintInstructions />
+      <PrintInstructions data={data} isExporting={isExporting} handleExport={handleExport} canExport={canExport} />
 
       <footer className="site-footer">
         <p className="footer-credit">
