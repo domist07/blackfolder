@@ -10,6 +10,7 @@
 :root {
   --primary-color: #9d0000;
   --primary-light: #b13333;
+  --primary-dark: #7a0000;
   --text-dark: #1a1a1a;
   --text-light: #ffffff;
   --bg-color: #f5f5f5;
@@ -182,8 +183,8 @@ body::before {
   flex: 1;
   min-width: 180px;
   padding: 0.85rem 1.5rem;
-  background-color: var(--bg-color);
-  color: var(--text-dark);
+  background-color: var(--primary-color);
+  color: var(--text-light);
   border: none;
   border-radius: 8px;
   font-size: 1rem;
@@ -194,7 +195,7 @@ body::before {
 }
 
 .btn-export:hover {
-  background-color: var(--primary-light);
+  background-color: var(--primary-dark);
   transform: translateY(-1px);
 }
 
