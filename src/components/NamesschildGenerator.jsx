@@ -105,6 +105,8 @@ function NamesschildGenerator() {
       <footer className="site-footer">
         <p className="footer-credit">
           Erstellt von Dominik für den tollsten Chor der Welt 🐥.
+        </p>
+        <p className="footer-credit">
           Dominik hat im LJC von 2012 bis 2026 mitgesungen
           und war von 2017 bis 2025 Betreuer für Öffentlichkeitsarbeit.
         </p>
