@@ -251,7 +251,7 @@ body::before {
   font-size: 1.4rem;
   color: var(--primary-color);
   margin-bottom: 1rem;
-  text-align: center;
+  text-align: left;
 }
 
 .print-instructions ol {
@@ -285,4 +285,6 @@ body::before {
   color: var(--primary-color);
   font-size: 2rem;
   margin-bottom: 0.5rem;
+  text-align: left;
+  align-self: flex-start;
 }
