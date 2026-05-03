@@ -4,6 +4,29 @@ import NamesschildPreview from './NamesschildPreview';
 import { exportSinglePdf, exportA4Pdf } from '../utils/pdfExport';
 import { preloadFonts } from '../utils/fontLoader';
 
+/**
+ * PrintInstructions - Component showing printing instructions
+ */
+function PrintInstructions() {
+  return (
+    <div className="print-instructions">
+      <h2>Druckanleitung</h2>
+      <ol>
+        <li>Alle Felder ausfüllen</li>
+        <li><strong>„📄 A4 zum Drucken"</strong> klicken</li>
+        <li>PDF öffnen und drucken mit:
+          <ul>
+            <li>Skalierung: <strong>100% / Tatsächliche Größe</strong></li>
+            <li>⚠️ „An Seite anpassen" muss deaktiviert sein</li>
+          </ul>
+        </li>
+        <li>Entlang der grauen Schnittmarkierungen ausschneiden</li>
+        <li>Fertig – in die Notenmappe einlegen</li>
+      </ol>
+    </div>
+  );
+}
+
 const STORAGE_KEY = 'ljc_namensschild_data';
 const INITIAL_DATA = { firstName: '', lastName: '', phoneNumber: '', email: '' };
 
@@ -76,6 +99,8 @@ function NamesschildGenerator() {
           </button>
         </div>
       </div>
+
+      <PrintInstructions />
 
       <footer className="site-footer">
         <p className="footer-credit">
