@@ -73,12 +73,16 @@ Vor- und Nachname teilen sich immer dieselbe Schriftgröße – der längere Nam
 
 ##### 4. CSS-Variablen für Theming
 
-Alle Farben sind als CSS Custom Properties definiert. Die Website-Notenlinien nutzen `color-mix()` mit den Projektvariablen – kein Hardcoding von Farbwerten außerhalb von `:root`.
+Alle Farben sind als CSS Custom Properties definiert.
 
 ```js
 --primary-color: #9d0000;
 --primary-light: #b13333;
---notenlinie: color-mix(in srgb, var(--primary-light) 20%, transparent);
+--primary-dark: #7a0000;
+--text-dark: #1a1a1a;
+--text-light: #ffffff;
+--bg-color: #f5f5f5;
+--card-bg: #ffffff;
 ```
 
 ##### 5. Performance-First Export
