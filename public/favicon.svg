@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+
+  <!-- Roter Hintergrund -->
+  <rect width="512" height="512" rx="80" fill="#9d0000"/>
+
+  <!-- Visitenkarte -->
+  <rect x="80" y="150" width="340" height="210" rx="20" fill="white"/>
+
+  <!-- Ecken unten vom Streifen gerade machen -->
+  <rect x="80" y="195" width="340" height="40" fill="#7a0000"/>
+
+</svg>

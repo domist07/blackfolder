@@ -1,6 +1,6 @@
 *.json
-*.svg
 background.html
+background.svg
 .DS_Store
 
 node_modules/
