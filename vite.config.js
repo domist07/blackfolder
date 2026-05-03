@@ -6,5 +6,18 @@ export default defineConfig({
   server: {
     port: 3000,
     open: true
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Split jsPDF into its own chunk
+          jspdf: ['jspdf'],
+          // Split React and ReactDOM into vendor chunks
+          'react-vendor': ['react', 'react-dom']
+        }
+      }
+    },
+    chunkSizeWarningLimit: 600 // Increase warning limit to 600kB if you want to suppress the warning
   }
 });
