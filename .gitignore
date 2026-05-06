@@ -1,4 +1,5 @@
 *.json
+*.ttf
 background.html
 background.svg
 .DS_Store
