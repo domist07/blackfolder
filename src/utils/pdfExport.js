@@ -192,39 +192,6 @@ function drawText(doc, data, font, ox = 0, oy = 0) {
 // ===== Öffentliche Export-Funktionen =====
 
 /**
- * Exportiert einzelnes Namensschild als PDF
- *
- * @param {Object} data - Benutzerdaten
- */
-export async function exportSinglePdf(data) {
-  if (!data.firstName && !data.lastName) {
-    alert('Bitte mindestens Vor- oder Nachname eingeben.');
-    return;
-  }
-
-  const doc = new jsPDF({
-    orientation: 'landscape',
-    unit: 'mm',
-    format: [PHYSICAL.HEIGHT_MM, PHYSICAL.WIDTH_MM],
-    compress: true
-  });
-
-  await registerFonts(doc);
-  const font = getActiveFont(doc);
-
-  // 1️⃣ Hintergrund als Bild (gecacht, identisch mit Vorschau)
-  const bgImage = getBackgroundImage();
-  doc.addImage(bgImage, 'PNG', 0, 0, PHYSICAL.WIDTH_MM, PHYSICAL.HEIGHT_MM);
-
-  // 2️⃣ Text als Vektor
-  drawText(doc, data, font);
-
-  const fileName = `Namensschild_${data.firstName || 'X'}_${data.lastName || 'X'}.pdf`;
-  doc.save(fileName);
-  console.log('✓ PDF gespeichert:', fileName);
-}
-
-/**
  * Exportiert auf DIN A4 zum Drucken (mit Schnittmarkierungen)
  *
  * @param {Object} data - Benutzerdaten

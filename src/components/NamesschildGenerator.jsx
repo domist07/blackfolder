@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import TextInputPanel from './TextInputPanel';
 import NamesschildPreview from './NamesschildPreview';
-import { exportSinglePdf, exportA4Pdf } from '../utils/pdfExport';
+import { exportA4Pdf } from '../utils/pdfExport';
 import { preloadFonts } from '../utils/fontLoader';
 
 /**
@@ -25,13 +25,6 @@ function PrintInstructions({ data, isExporting, handleExport, canExport }) {
       </ol>
 
       <div className="export-buttons" style={{ marginTop: '1.5rem' }}>
-        <button
-          className="btn-export"
-          onClick={() => handleExport(exportSinglePdf)}
-          disabled={!canExport}
-        >
-          {isExporting ? '⏳ Erstelle PDF...' : '📥 Als PDF speichern'}
-        </button>
         <button
           className="btn-export"
           onClick={() => handleExport(exportA4Pdf)}
