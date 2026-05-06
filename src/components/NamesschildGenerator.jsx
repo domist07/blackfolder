@@ -13,11 +13,11 @@ function PrintInstructions({ data, isExporting, handleExport, canExport }) {
       <h1 className="title-heading">Druckanleitung</h1>
       <ol>
         <li>Alle Felder ausfüllen</li>
-        <li><strong>„📄 A4 zum Drucken"</strong> klicken</li>
+        <li>„PDF für A4-Druck exportieren" klicken</li>
         <li>PDF öffnen und drucken mit:
           <ul>
-            <li>Skalierung: <strong>100% / Tatsächliche Größe</strong></li>
-            <li>⚠️ „An Seite anpassen" muss deaktiviert sein</li>
+            <li>Skalierung: 100% / Tatsächliche Größe</li>
+            <li>„An Seite anpassen" muss deaktiviert sein</li>
           </ul>
         </li>
         <li>Entlang der grauen Schnittmarkierungen ausschneiden</li>
@@ -30,7 +30,7 @@ function PrintInstructions({ data, isExporting, handleExport, canExport }) {
           onClick={() => handleExport(exportA4Pdf)}
           disabled={!canExport}
         >
-          {isExporting ? '⏳ Erstelle PDF...' : '📄 A4 zum Drucken'}
+          {isExporting ? '⏳ Erstelle PDF...' : 'PDF für A4-Druck exportieren'}
         </button>
       </div>
     </div>
@@ -97,7 +97,7 @@ function NamesschildGenerator() {
 
       <footer className="site-footer">
         <p className="footer-credit">
-          Erstellt von Dominik für den tollsten Chor der Welt 🐥.
+          Erstellt von Dominik für den tollsten Chor der Welt.
         </p>
         <p className="footer-credit">
           Dominik hat im LJC von 2012 bis 2026 mitgesungen

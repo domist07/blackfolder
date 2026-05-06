@@ -211,11 +211,11 @@ Alle physischen Maße sind zentral in `src/utils/constants.js` unter `PHYSICAL` 
 
 
 1. Alle Felder ausfüllen
-2. **„📄 A4 zum Drucken"** klicken
+2. **„PDF für A4-Druck exportieren"** klicken
 3. PDF öffnen und drucken mit:
 
    - Skalierung: **100% / Tatsächliche Größe**
-   - ⚠️ „An Seite anpassen" muss deaktiviert sein
+   - „An Seite anpassen" muss deaktiviert sein
 
 4. Entlang der grauen Schnittmarkierungen ausschneiden
 5. Fertig – in die Notenmappe einlegen
