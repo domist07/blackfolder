@@ -3,6 +3,7 @@
  * 
  * Lädt Roboto-TTF-Dateien von Google Fonts CDN und
  * registriert sie bei Bedarf in jsPDF-Instanzen.
+ * Fallback: Lädt lokal aus dem 'fonts/' Verzeichnis wenn URLs nicht erreichbar sind.
  * 
  * @module fontLoader
  */
@@ -12,6 +13,13 @@
 const FONT_URLS = {
   regular: 'https://fonts.gstatic.com/s/roboto/v32/KFOmCnqEu92Fr1Me5Q.ttf',
   medium:  'https://fonts.gstatic.com/s/roboto/v32/KFOlCnqEu92Fr1MmEU9vAw.ttf'
+};
+
+// ===== Konfiguration: Lokale Font-Pfade (Fallback) =====
+// Pfade zu lokalen TTF-Dateien relativ zum public/ Verzeichnis
+const FONT_LOCAL_PATHS = {
+  regular: '/fonts/Roboto-Regular.ttf',
+  medium:  '/fonts/Roboto-Medium.ttf'
 };
 
 let fontsLoaded = false;
@@ -48,26 +56,64 @@ async function fetchFontAsBase64(url) {
 }
 
 /**
+ * Lädt eine Font-Datei lokal aus dem public/ Verzeichnis
+ * @param {string} path - Relativer Pfad zur TTF-Datei (beginnend mit /)
+ * @returns {Promise<string>} Base64-kodierter Font
+ */
+async function fetchLocalFontAsBase64(path) {
+  try {
+    const response = await fetch(path);
+    if (!response.ok) throw new Error(`Lokale Font-Datei nicht ladbar: ${path} (${response.status})`);
+    const buffer = await response.arrayBuffer();
+    return arrayBufferToBase64(buffer);
+  } catch (error) {
+    console.warn(`⚠️ Lokale Font-Datei nicht gefunden oder ladbar: ${path}`, error.message);
+    throw error;
+  }
+}
+
+/**
  * Interne Ladefunktion (wird nur einmal ausgeführt)
  * @returns {Promise<boolean>}
  */
 async function loadFontsInternal() {
+  let regular = null;
+  let medium = null;
+  let loadedFrom = null;
+
   try {
-    const [regular, medium] = await Promise.all([
+    // Versuche zuerst das Laden von externen URLs
+    [regular, medium] = await Promise.all([
       fetchFontAsBase64(FONT_URLS.regular),
       fetchFontAsBase64(FONT_URLS.medium)
     ]);
-
-    fontCache.regular = regular;
-    fontCache.medium = medium;
-    fontsLoaded = true;
-
+    loadedFrom = 'URLs';
     console.log('✓ Roboto Fonts von CDN geladen');
-    return true;
-  } catch (error) {
-    console.warn('⚠️ Font-Laden fehlgeschlagen:', error.message);
-    return false;
+  } catch (urlError) {
+    console.warn('⚠️ Font-Laden von URLs fehlgeschlagen:', urlError.message);
+    console.log('➡️ Versuche Fallback zu lokalen Dateien...');
+
+    try {
+      // Fallback: Lade von lokalen Pfaden
+      [regular, medium] = await Promise.all([
+        fetchLocalFontAsBase64(FONT_LOCAL_PATHS.regular),
+        fetchLocalFontAsBase64(FONT_LOCAL_PATHS.medium)
+      ]);
+      loadedFrom = 'lokal';
+      console.log('✓ Roboto Fonts lokal aus fonts/ Verzeichnis geladen');
+    } catch (localError) {
+      console.error('❌ Beide Lademethoden sind gescheitert');
+      console.error('   URLs:', urlError.message);
+      console.error('   Lokal:', localError.message);
+      return false;
+    }
   }
+
+  fontCache.regular = regular;
+  fontCache.medium = medium;
+  fontsLoaded = true;
+
+  return true;
 }
 
 /**
