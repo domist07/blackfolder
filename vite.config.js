@@ -10,11 +10,15 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
+        manualChunks: (id) => {
           // Split jsPDF into its own chunk
-          jspdf: ['jspdf'],
+          if (id.includes('jspdf')) {
+            return 'jspdf';
+          }
           // Split React and ReactDOM into vendor chunks
-          'react-vendor': ['react', 'react-dom']
+          if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
+            return 'react-vendor';
+          }
         }
       }
     },
