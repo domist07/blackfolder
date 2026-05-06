@@ -59,7 +59,7 @@ function TextInputPanel({ data, onChange }) {
               id="lastName"
               value={data.lastName}
               onChange={handleChange('lastName')}
-              placeholder="Mustermann"
+              placeholder="Musterfrau"
               maxLength={50}
               className={getInputClass(data.lastName)}
               autoComplete="family-name"
@@ -90,13 +90,15 @@ function TextInputPanel({ data, onChange }) {
             id="email"
             value={data.email}
             onChange={handleChange('email')}
-            placeholder="max.mustermann@example.com"
+            placeholder="max.musterfrau@example.com"
             maxLength={100}
             className={getInputClass(data.email)}
             autoComplete="email"
           />
           <span className="input-hint">
-            Tipp: Verwende <strong>/</strong> für einen manuellen Zeilenumbruch
+            Tipp: Verwende <strong>/</strong> für einen manuellen Zeilenumbruch bei langen Mailadressen, z.B.
+            <br />
+            <code>max.musterfrau/<br />@landesjugendchor.de</code>
           </span>
         </div>
       </form>
