@@ -25,18 +25,17 @@ import { registerFonts } from './fontLoader.js';
 let backgroundImageCache = null;
 
 /**
- * Rendert den gesamten Namensschild (Hintergrund + Text) auf ein Canvas
+ * Rendert nur den Text des Namensschildes auf ein Canvas
  * und gibt das Ergebnis als PNG Data-URL zurück.
  * 
- * Diese Methode vermeidet Font-Probleme mit jsPDF, da der gesamte
- * Namensschild als Bild eingebunden wird.
+ * Diese Methode vermeidet Font-Probleme mit jsPDF, da der Text
+ * als Bild eingebunden wird, während der Hintergrund separat gerendert wird.
  * 
  * @param {Object} data - { firstName, lastName, phoneNumber, email }
- * @param {string} font - Font-Name
  * @param {number} scale - Skalierungsfaktor für Qualität
  * @returns {string} PNG Data-URL
  */
-function renderNamensschildToImage(data, font, scale = 4) {
+function renderTextOnlyToImage(data, scale = 4) {
   const canvas = document.createElement('canvas');
   canvas.width  = CANVAS.WIDTH * scale;
   canvas.height = CANVAS.HEIGHT * scale;
@@ -46,8 +45,9 @@ function renderNamensschildToImage(data, font, scale = 4) {
   // Auf Zielgröße skalieren
   ctx.scale(scale, scale);
   
-  // Hintergrund rendern
-  renderBackground(ctx);
+  // TRANSPARENTER Hintergrund - nur Text!
+  ctx.clearRect(0, 0, CANVAS.WIDTH, CANVAS.HEIGHT);
+  ctx.globalCompositeOperation = 'destination-over'; // Zeichnet hinter bestehendem Inhalt (hier: nichts)
   
   // Text rendern (identisch mit drawText aus pdfExport)
   ctx.textBaseline = 'top';
@@ -341,7 +341,7 @@ export async function exportA4Pdf(data) {
   const useImageFallback = font !== 'Roboto';
   if (useImageFallback) {
     console.log('ℹ️  Use Image-Fallback für Text (Font-Problem)');
-    const textImage = renderNamensschildToImage(data, 'Roboto', 4);
+    const textImage = renderTextOnlyToImage(data, 4);
     doc.addImage(textImage, 'PNG', ox, oy, w, h);
   } else {
     drawText(doc, data, font, ox, oy);
