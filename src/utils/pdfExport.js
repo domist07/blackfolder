@@ -16,7 +16,7 @@
  */
 
 import { jsPDF } from 'jspdf';
-import { PHYSICAL, PDF, COLORS, CANVAS } from './constants.js';
+import { PHYSICAL, PDF, COLORS, CANVAS, FONTS } from './constants.js';
 import { renderBackground } from './backgroundRenderer.js';
 import { registerFonts } from './fontLoader.js';
 
@@ -65,14 +65,14 @@ function renderNamensschildToImage(data, font, scale = 4) {
   
   // Vorname
   if (data.firstName) {
-    ctx.font = `bold ${nameSize}px ${font}`;
+    ctx.font = `bold ${nameSize}px ${FONTS.PREVIEW}`;
     ctx.fillStyle = `rgb(${COLORS.TEXT_WHITE_RGB.join(',')})`;
     ctx.fillText(data.firstName, CANVAS.LEFT_PADDING, CANVAS.TOP_PADDING);
   }
   
   // Nachname
   if (data.lastName) {
-    ctx.font = `bold ${nameSize}px ${font}`;
+    ctx.font = `bold ${nameSize}px ${FONTS.PREVIEW}`;
     ctx.fillStyle = `rgb(${COLORS.TEXT_WHITE_RGB.join(',')})`;
     ctx.fillText(data.lastName, CANVAS.LEFT_PADDING, CANVAS.TOP_PADDING + nameLineH);
   }
@@ -82,7 +82,7 @@ function renderNamensschildToImage(data, font, scale = 4) {
   
   // Telefonnummer
   if (data.phoneNumber) {
-    ctx.font = `normal ${infoSize}px ${font}`;
+    ctx.font = `normal ${infoSize}px ${FONTS.PREVIEW}`;
     ctx.fillStyle = `rgb(${COLORS.TEXT_WHITE_RGB.join(',')})`;
     ctx.fillText(data.phoneNumber, CANVAS.LEFT_PADDING, CANVAS.TOP_PADDING + (nameLineH * 2));
   }
@@ -90,7 +90,7 @@ function renderNamensschildToImage(data, font, scale = 4) {
   // E-Mail
   if (data.email) {
     const lines = data.email.split('/').map(l => l.trim()).filter(Boolean);
-    ctx.font = `normal ${infoSize}px ${font}`;
+    ctx.font = `normal ${infoSize}px ${FONTS.PREVIEW}`;
     ctx.fillStyle = `rgb(${COLORS.TEXT_WHITE_RGB.join(',')})`;
     
     let currentY = CANVAS.TOP_PADDING + (nameLineH * 2) + infoSize + CANVAS.LINE_SPACING;
@@ -307,7 +307,7 @@ export async function exportA4Pdf(data) {
   const useImageFallback = font !== 'Roboto';
   if (useImageFallback) {
     console.log('ℹ️  Use Image-Fallback für Text (Font-Problem)');
-    const textImage = renderNamensschildToImage(data, font === 'helvetica' ? 'sans-serif' : 'Roboto', 4);
+    const textImage = renderNamensschildToImage(data, 'Roboto', 4);
     doc.addImage(textImage, 'PNG', ox, oy, w, h);
   } else {
     drawText(doc, data, font, ox, oy);
