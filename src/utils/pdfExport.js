@@ -74,20 +74,29 @@ function renderTextOnlyToImage(data, scale = 4) {
     nameSize = Math.min(nameSize, fitCanvasFontSize(data.lastName, CANVAS.MAX_NAME_WIDTH, nameSize, 'bold'));
   }
   
-  const nameLineH = nameSize + CANVAS.LINE_SPACING;
+  // nameLineH wie in PDF drawText: nameSize * 0.3528 (pt zu mm conversion),
+  // aber in Pixeln: nameSize * 0.3528 * scale_factor
+  // Da 1mm ≈ 3.78px bei 4× Skalierung (96 DPI)
+  const mmToPx = 3.78; // 96 DPI / 25.4 mm pro inch ≈ 3.78 px per mm
+  const nameLineH = nameSize * 0.3528 * mmToPx;
+  
+  // Y-Startposition wie in drawText: TOP_PADDING + nameLineH (erst dann wird gezeichnet)
+  let y = CANVAS.TOP_PADDING + nameLineH;
   
   // Vorname
   if (data.firstName) {
     ctx.font = `bold ${nameSize}px ${FONTS.PREVIEW}`;
     ctx.fillStyle = `rgb(${COLORS.TEXT_WHITE_RGB.join(',')})`;
-    ctx.fillText(data.firstName, CANVAS.LEFT_PADDING, CANVAS.TOP_PADDING);
+    ctx.fillText(data.firstName, CANVAS.LEFT_PADDING, y);
+    y += nameLineH + (CANVAS.LINE_SPACING * mmToPx);
   }
   
   // Nachname
   if (data.lastName) {
     ctx.font = `bold ${nameSize}px ${FONTS.PREVIEW}`;
     ctx.fillStyle = `rgb(${COLORS.TEXT_WHITE_RGB.join(',')})`;
-    ctx.fillText(data.lastName, CANVAS.LEFT_PADDING, CANVAS.TOP_PADDING + nameLineH);
+    ctx.fillText(data.lastName, CANVAS.LEFT_PADDING, y);
+    y += nameLineH + (CANVAS.LINE_SPACING * mmToPx);
   }
   
   // ===== Einheitliche Info-Größe =====
@@ -113,12 +122,16 @@ function renderTextOnlyToImage(data, scale = 4) {
     });
   }
   
-  // Telefonnummer
+  
+  // Telefonnummer (wie in drawText: y += infoLineH + 1, dann text, dann y += LINE_SPACING)
+  // infoLineH = infoSize * 0.3528, +1 bedeutet +1pt = +0.3528mm
+  const infoLineH = infoSize * 0.3528 * mmToPx;
   if (data.phoneNumber) {
+    y += infoLineH + (0.3528 * mmToPx); // +1pt in pixeln
     ctx.font = `normal ${infoSize}px ${FONTS.PREVIEW}`;
     ctx.fillStyle = `rgb(${COLORS.TEXT_WHITE_RGB.join(',')})`;
-    const phoneY = CANVAS.TOP_PADDING + nameLineH + nameLineH; // nach beiden Namen
-    ctx.fillText(data.phoneNumber, CANVAS.LEFT_PADDING, phoneY);
+    ctx.fillText(data.phoneNumber, CANVAS.LEFT_PADDING, y);
+    y += CANVAS.LINE_SPACING * mmToPx;
   }
   
   // E-Mail (mit "/" als Zeilenumbruch)
@@ -127,13 +140,13 @@ function renderTextOnlyToImage(data, scale = 4) {
     ctx.font = `normal ${infoSize}px ${FONTS.PREVIEW}`;
     ctx.fillStyle = `rgb(${COLORS.TEXT_WHITE_RGB.join(',')})`;
     
-    let currentY = CANVAS.TOP_PADDING + nameLineH + nameLineH + infoSize + CANVAS.LINE_SPACING;
-    lines.forEach(line => {
-      if (currentY < CANVAS.HEIGHT - CANVAS.TOP_PADDING) {
-        ctx.fillText(line, CANVAS.LEFT_PADDING, currentY);
-        currentY += infoSize + 4;
+    for (const line of lines) {
+      y += infoLineH;
+      if (y < CANVAS.HEIGHT - CANVAS.TOP_PADDING) {
+        ctx.fillText(line, CANVAS.LEFT_PADDING, y);
+        y += 0.3528 * mmToPx; // +1pt in pixeln wie im PDF
       }
-    });
+    }
   }
   
   return canvas.toDataURL('image/png');
@@ -252,7 +265,7 @@ function drawText(doc, data, font, ox = 0, oy = 0) {
   if (data.firstName) {
     doc.setFont(font, 'bold');
     doc.setFontSize(nameSize);
-    doc.text(data.firstName, ox + x, oy + y);
+    doc.text(data.firstName, ox + x, oy + y, { baseline: 'top' });
     y += nameLineH + PDF.LINE_SPACING_MM;
   }
 
@@ -260,7 +273,7 @@ function drawText(doc, data, font, ox = 0, oy = 0) {
   if (data.lastName) {
     doc.setFont(font, 'bold');
     doc.setFontSize(nameSize);
-    doc.text(data.lastName, ox + x, oy + y);
+    doc.text(data.lastName, ox + x, oy + y, { baseline: 'top' });
     y += nameLineH + PDF.LINE_SPACING_MM;
   }
 
@@ -286,7 +299,7 @@ function drawText(doc, data, font, ox = 0, oy = 0) {
   if (data.phoneNumber) {
     doc.setFont(font, 'normal');
     doc.setFontSize(infoSize);
-    doc.text(data.phoneNumber, ox + x, oy + y);
+    doc.text(data.phoneNumber, ox + x, oy + y, { baseline: 'top' });
     y += infoLineH + PDF.LINE_SPACING_MM;
   }
 
@@ -298,7 +311,7 @@ function drawText(doc, data, font, ox = 0, oy = 0) {
 
     for (const line of lines) {
       if (y < PHYSICAL.HEIGHT_MM - PHYSICAL.TOP_PADDING_MM) {
-        doc.text(line, ox + x, oy + y);
+        doc.text(line, ox + x, oy + y, { baseline: 'top' });
         y += infoLineH + 1; // +1 for additional spacing between email lines
       }
     }
