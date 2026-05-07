@@ -132,18 +132,16 @@ function drawText(doc, data, font, ox = 0, oy = 0) {
   if (data.firstName) {
     doc.setFont(font, 'bold');
     doc.setFontSize(nameSize);
-    y += nameLineH;
     doc.text(data.firstName, ox + x, oy + y);
-    y += PDF.LINE_SPACING_MM;
+    y += nameLineH + PDF.LINE_SPACING_MM;
   }
 
   // Nachname
   if (data.lastName) {
     doc.setFont(font, 'bold');
     doc.setFontSize(nameSize);
-    y += nameLineH;
     doc.text(data.lastName, ox + x, oy + y);
-    y += PDF.LINE_SPACING_MM;
+    y += nameLineH + PDF.LINE_SPACING_MM;
   }
 
   // ===== Einheitliche Info-Größe =====
@@ -168,9 +166,8 @@ function drawText(doc, data, font, ox = 0, oy = 0) {
   if (data.phoneNumber) {
     doc.setFont(font, 'normal');
     doc.setFontSize(infoSize);
-    y += infoLineH + 1;
     doc.text(data.phoneNumber, ox + x, oy + y);
-    y += PDF.LINE_SPACING_MM;
+    y += infoLineH + PDF.LINE_SPACING_MM;
   }
 
   // E-Mail (mit "/" als Zeilenumbruch)
@@ -180,10 +177,9 @@ function drawText(doc, data, font, ox = 0, oy = 0) {
     doc.setFontSize(infoSize);
 
     for (const line of lines) {
-      y += infoLineH;
       if (y < PHYSICAL.HEIGHT_MM - PHYSICAL.TOP_PADDING_MM) {
         doc.text(line, ox + x, oy + y);
-        y += 1;
+        y += infoLineH + 1; // +1 for additional spacing between email lines
       }
     }
   }
@@ -192,7 +188,7 @@ function drawText(doc, data, font, ox = 0, oy = 0) {
 // ===== Öffentliche Export-Funktionen =====
 
 /**
- * Exportiert auf DIN A4 zum Drucken (mit Schnittmarkierungen)
+ * Exportiert auf DIN 10:03 PM (mit Schnittmarkierungen)
  *
  * @param {Object} data - Benutzerdaten
  */

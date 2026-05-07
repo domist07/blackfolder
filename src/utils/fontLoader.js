@@ -12,13 +12,12 @@
 // Pfade zu lokalen TTF-Dateien relativ zum public/ Verzeichnis
 const FONT_LOCAL_PATHS = {
   regular: '/fonts/Roboto-Regular.ttf',
-  medium:  '/fonts/Roboto-Medium.ttf',
-  bold:    '/fonts/Roboto-Bold.ttf'
+  medium:  '/fonts/Roboto-Medium.ttf'
 };
 
 let fontsLoaded = false;
 let fontsLoading = null;
-let fontCache = { regular: null, medium: null, bold: null};
+let fontCache = { regular: null, medium: null};
 
 /**
  * Konvertiert ArrayBuffer zu Base64-String
@@ -53,14 +52,12 @@ async function fetchLocalFontAsBase64(path) {
 async function loadFontsInternal() {
   let regular = null;
   let medium = null;
-  let bold = null;
 
   try {
     // Lade nur von lokalen Pfaden
-    [regular, medium, bold] = await Promise.all([
+    [regular, medium] = await Promise.all([
       fetchLocalFontAsBase64(FONT_LOCAL_PATHS.regular),
-      fetchLocalFontAsBase64(FONT_LOCAL_PATHS.medium),
-      fetchLocalFontAsBase64(FONT_LOCAL_PATHS.bold)
+      fetchLocalFontAsBase64(FONT_LOCAL_PATHS.medium)
     ]);
     console.log('✓ Roboto Fonts lokal aus fonts/ Verzeichnis geladen');
   } catch (localError) {
@@ -71,7 +68,6 @@ async function loadFontsInternal() {
 
   fontCache.regular = regular;
   fontCache.medium = medium;
-  fontCache.bold = bold;
   fontsLoaded = true;
 
   return true;
@@ -104,11 +100,9 @@ export async function registerFonts(doc) {
 
   doc.addFileToVFS('Roboto-Regular.ttf', fontCache.regular);
   doc.addFileToVFS('Roboto-Medium.ttf', fontCache.medium);
-  doc.addFileToVFS('Roboto-Bold.ttf', fontCache.bold);
 
   doc.addFont('Roboto-Regular.ttf', 'Roboto', 'normal');
-  doc.addFont('Roboto-Medium.ttf', 'Roboto', 'normal');
-  doc.addFont('Roboto-Bold.ttf', 'Roboto', 'bold');
+  doc.addFont('Roboto-Medium.ttf', 'Roboto', 'bold');
 
   return true;
 }
