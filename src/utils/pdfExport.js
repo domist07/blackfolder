@@ -25,6 +25,87 @@ import { registerFonts } from './fontLoader.js';
 let backgroundImageCache = null;
 
 /**
+ * Rendert den gesamten Namensschild (Hintergrund + Text) auf ein Canvas
+ * und gibt das Ergebnis als PNG Data-URL zurück.
+ * 
+ * Diese Methode vermeidet Font-Probleme mit jsPDF, da der gesamte
+ * Namensschild als Bild eingebunden wird.
+ * 
+ * @param {Object} data - { firstName, lastName, phoneNumber, email }
+ * @param {string} font - Font-Name
+ * @param {number} scale - Skalierungsfaktor für Qualität
+ * @returns {string} PNG Data-URL
+ */
+function renderNamensschildToImage(data, font, scale = 4) {
+  const canvas = document.createElement('canvas');
+  canvas.width  = CANVAS.WIDTH * scale;
+  canvas.height = CANVAS.HEIGHT * scale;
+
+  const ctx = canvas.getContext('2d');
+  
+  // Auf Zielgröße skalieren
+  ctx.scale(scale, scale);
+  
+  // Hintergrund rendern
+  renderBackground(ctx);
+  
+  // Text rendern (identisch mit Preview)
+  ctx.textBaseline = 'top';
+  
+  // Namens-Größe berechnen
+  let nameSize = CANVAS.INITIAL_NAME_SIZE;
+  if (data.firstName) {
+    nameSize = Math.min(nameSize, CANVAS.INITIAL_NAME_SIZE);
+  }
+  if (data.lastName) {
+    nameSize = Math.min(nameSize, CANVAS.INITIAL_NAME_SIZE);
+  }
+  
+  const nameLineH = nameSize + CANVAS.LINE_SPACING;
+  
+  // Vorname
+  if (data.firstName) {
+    ctx.font = `bold ${nameSize}px ${font}`;
+    ctx.fillStyle = `rgb(${COLORS.TEXT_WHITE_RGB.join(',')})`;
+    ctx.fillText(data.firstName, CANVAS.LEFT_PADDING, CANVAS.TOP_PADDING);
+  }
+  
+  // Nachname
+  if (data.lastName) {
+    ctx.font = `bold ${nameSize}px ${font}`;
+    ctx.fillStyle = `rgb(${COLORS.TEXT_WHITE_RGB.join(',')})`;
+    ctx.fillText(data.lastName, CANVAS.LEFT_PADDING, CANVAS.TOP_PADDING + nameLineH);
+  }
+  
+  // Info-Größe berechnen
+  let infoSize = CANVAS.INITIAL_INFO_SIZE;
+  
+  // Telefonnummer
+  if (data.phoneNumber) {
+    ctx.font = `normal ${infoSize}px ${font}`;
+    ctx.fillStyle = `rgb(${COLORS.TEXT_WHITE_RGB.join(',')})`;
+    ctx.fillText(data.phoneNumber, CANVAS.LEFT_PADDING, CANVAS.TOP_PADDING + (nameLineH * 2));
+  }
+  
+  // E-Mail
+  if (data.email) {
+    const lines = data.email.split('/').map(l => l.trim()).filter(Boolean);
+    ctx.font = `normal ${infoSize}px ${font}`;
+    ctx.fillStyle = `rgb(${COLORS.TEXT_WHITE_RGB.join(',')})`;
+    
+    let currentY = CANVAS.TOP_PADDING + (nameLineH * 2) + infoSize + CANVAS.LINE_SPACING;
+    lines.forEach(line => {
+      if (currentY < CANVAS.HEIGHT - CANVAS.TOP_PADDING) {
+        ctx.fillText(line, CANVAS.LEFT_PADDING, currentY);
+        currentY += infoSize + 4;
+      }
+    });
+  }
+  
+  return canvas.toDataURL('image/png');
+}
+
+/**
  * Rendert den Hintergrund auf ein Offscreen-Canvas und gibt
  * das Ergebnis als PNG Data-URL zurück.
  *
@@ -66,11 +147,16 @@ function getBackgroundImage(scale = 4) {
 function getActiveFont(doc) {
   try {
     doc.setFont('Roboto', 'normal');
-    return 'Roboto';
-  } catch {
-    console.warn('⚠️ Roboto nicht verfügbar, nutze Helvetica');
-    return 'helvetica';
+    // Test ob der Font wirklich funktioniert
+    const testText = 'Test';
+    const width = doc.getTextWidth(testText);
+    if (width > 0) {
+      return 'Roboto';
+    }
+  } catch (err) {
+    console.warn('⚠️ Roboto Font nicht nutzbar, nutze Helvetica-Fallback:', err.message);
   }
+  return 'helvetica';
 }
 
 /**
@@ -217,8 +303,15 @@ export async function exportA4Pdf(data) {
   const bgImage = getBackgroundImage();
   doc.addImage(bgImage, 'PNG', ox, oy, w, h);
 
-  // 2️⃣ Text als Vektor
-  drawText(doc, data, font, ox, oy);
+  // 2️⃣ Text als Vektor (oder Image-Fallback bei Font-Problemen)
+  const useImageFallback = font !== 'Roboto';
+  if (useImageFallback) {
+    console.log('ℹ️  Use Image-Fallback für Text (Font-Problem)');
+    const textImage = renderNamensschildToImage(data, font === 'helvetica' ? 'sans-serif' : 'Roboto', 4);
+    doc.addImage(textImage, 'PNG', ox, oy, w, h);
+  } else {
+    drawText(doc, data, font, ox, oy);
+  }
 
   // 3️⃣ Schnittmarkierungen
   const m = 4;

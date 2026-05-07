@@ -20,6 +20,16 @@ let fontsLoading = null;
 let fontCache = { regular: null, medium: null};
 
 /**
+ * Entfernt den data URI prefix aus einem Base64-string falls vorhanden
+ * @param {string} base64String
+ * @returns {string}
+ */
+function cleanBase64(base64String) {
+  // Entferne data URI prefix wie "data:application/font-ttf;base64,"
+  return base64String.replace(/^data:[^;]*;base64,/, '');
+}
+
+/**
  * Konvertiert ArrayBuffer zu Base64-String
  * @param {ArrayBuffer} buffer
  * @returns {string}
@@ -42,7 +52,9 @@ async function fetchLocalFontAsBase64(path) {
   const response = await fetch(path);
   if (!response.ok) throw new Error(`Lokale Font-Datei nicht ladbar: ${path} (${response.status})`);
   const buffer = await response.arrayBuffer();
-  return arrayBufferToBase64(buffer);
+  const base64 = arrayBufferToBase64(buffer);
+  // Entferne eventuellen data URI prefix
+  return cleanBase64(base64);
 }
 
 /**
@@ -98,11 +110,18 @@ export async function registerFonts(doc) {
   const success = await preloadFonts();
   if (!success) return false;
 
-  doc.addFileToVFS('Roboto-Regular.ttf', fontCache.regular);
-  doc.addFileToVFS('Roboto-Medium.ttf', fontCache.medium);
+  try {
+    doc.addFileToVFS('Roboto-Regular.ttf', fontCache.regular);
+    doc.addFileToVFS('Roboto-Medium.ttf', fontCache.medium);
 
-  doc.addFont('Roboto-Regular.ttf', 'Roboto', 'normal');
-  doc.addFont('Roboto-Medium.ttf', 'Roboto', 'bold');
-
-  return true;
+    doc.addFont('Roboto-Regular.ttf', 'Roboto', 'normal');
+    doc.addFont('Roboto-Medium.ttf', 'Roboto', 'bold');
+    
+    console.log('✓ Roboto Fonts erfolgreich registriert');
+    return true;
+  } catch (err) {
+    console.warn('⚠️ Roboto Font-Registration fehlgeschlagen, nutze Helvetica-Fallback');
+    console.warn('   Fehler:', err.message);
+    return false;
+  }
 }
