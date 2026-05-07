@@ -49,16 +49,29 @@ function renderNamensschildToImage(data, font, scale = 4) {
   // Hintergrund rendern
   renderBackground(ctx);
   
-  // Text rendern (identisch mit Preview)
+  // Text rendern (identisch mit drawText aus pdfExport)
   ctx.textBaseline = 'top';
   
-  // Namens-Größe berechnen
+  // ===== Einheitliche Namens-Größe =====
   let nameSize = CANVAS.INITIAL_NAME_SIZE;
+  
+  // Anpassungsfunktion für Schriftgröße (analog zu fitFontSize)
+  const fitCanvasFontSize = (text, maxWidth, initialSize, weight) => {
+    let size = initialSize;
+    while (size > CANVAS.MIN_FONT_SIZE) {
+      ctx.font = `${weight} ${size}px ${FONTS.PREVIEW}`;
+      const measured = ctx.measureText(text).width;
+      if (measured <= maxWidth) return size;
+      size -= 1;
+    }
+    return CANVAS.MIN_FONT_SIZE;
+  };
+  
   if (data.firstName) {
-    nameSize = Math.min(nameSize, CANVAS.INITIAL_NAME_SIZE);
+    nameSize = Math.min(nameSize, fitCanvasFontSize(data.firstName, CANVAS.MAX_NAME_WIDTH, nameSize, 'bold'));
   }
   if (data.lastName) {
-    nameSize = Math.min(nameSize, CANVAS.INITIAL_NAME_SIZE);
+    nameSize = Math.min(nameSize, fitCanvasFontSize(data.lastName, CANVAS.MAX_NAME_WIDTH, nameSize, 'bold'));
   }
   
   const nameLineH = nameSize + CANVAS.LINE_SPACING;
@@ -77,23 +90,44 @@ function renderNamensschildToImage(data, font, scale = 4) {
     ctx.fillText(data.lastName, CANVAS.LEFT_PADDING, CANVAS.TOP_PADDING + nameLineH);
   }
   
-  // Info-Größe berechnen
+  // ===== Einheitliche Info-Größe =====
   let infoSize = CANVAS.INITIAL_INFO_SIZE;
+  
+  const fitCanvasInfoSize = (text, maxWidth, initialSize) => {
+    let size = initialSize;
+    while (size > CANVAS.MIN_FONT_SIZE) {
+      ctx.font = `normal ${size}px ${FONTS.PREVIEW}`;
+      const measured = ctx.measureText(text).width;
+      if (measured <= maxWidth) return size;
+      size -= 1;
+    }
+    return CANVAS.MIN_FONT_SIZE;
+  };
+  
+  if (data.phoneNumber) {
+    infoSize = Math.min(infoSize, fitCanvasInfoSize(data.phoneNumber, CANVAS.MAX_INFO_WIDTH, infoSize));
+  }
+  if (data.email) {
+    data.email.split('/').map(l => l.trim()).filter(Boolean).forEach(line => {
+      infoSize = Math.min(infoSize, fitCanvasInfoSize(line, CANVAS.MAX_INFO_WIDTH, infoSize));
+    });
+  }
   
   // Telefonnummer
   if (data.phoneNumber) {
     ctx.font = `normal ${infoSize}px ${FONTS.PREVIEW}`;
     ctx.fillStyle = `rgb(${COLORS.TEXT_WHITE_RGB.join(',')})`;
-    ctx.fillText(data.phoneNumber, CANVAS.LEFT_PADDING, CANVAS.TOP_PADDING + (nameLineH * 2));
+    const phoneY = CANVAS.TOP_PADDING + nameLineH + nameLineH; // nach beiden Namen
+    ctx.fillText(data.phoneNumber, CANVAS.LEFT_PADDING, phoneY);
   }
   
-  // E-Mail
+  // E-Mail (mit "/" als Zeilenumbruch)
   if (data.email) {
     const lines = data.email.split('/').map(l => l.trim()).filter(Boolean);
     ctx.font = `normal ${infoSize}px ${FONTS.PREVIEW}`;
     ctx.fillStyle = `rgb(${COLORS.TEXT_WHITE_RGB.join(',')})`;
     
-    let currentY = CANVAS.TOP_PADDING + (nameLineH * 2) + infoSize + CANVAS.LINE_SPACING;
+    let currentY = CANVAS.TOP_PADDING + nameLineH + nameLineH + infoSize + CANVAS.LINE_SPACING;
     lines.forEach(line => {
       if (currentY < CANVAS.HEIGHT - CANVAS.TOP_PADDING) {
         ctx.fillText(line, CANVAS.LEFT_PADDING, currentY);
