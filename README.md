@@ -1,10 +1,8 @@
-### 🎵 LJC Namensschild Generator
+# 🎵 LJC Namensschild Generator
 
 > Erstelle personalisierte Namensschilder für den Landesjugendchor – direkt im Browser, als druckfertiges Vektor-PDF.
 
----
-
-#### ✨ Features
+## ✨ Features
 
 
 - **Live-Vorschau** – Echtzeit-Rendering während der Eingabe
@@ -14,25 +12,21 @@
 - **Zwei Export-Modi** – Einzelnes Namensschild oder A4-Druckvorlage mit Schnittmarkierungen
 - **Lokale Schriftart** – Roboto wird lokal aus dem `fonts/` Verzeichnis geladen
 
----
-
-#### 📐 Design-Spezifikationen
+## 📐 Design-Spezifikationen
 
 | Eigenschaft      | Wert                          |
 |------------------|-------------------------------|
 | Format           | 95 × 60 mm (Querformat)       |
 | Hintergrund      | LJC-Rot `#9d0000`             |
 | Schriftfarbe     | Weiß `#FFFFFF`                |
-| Schriftart       | Roboto (Regular + Medium)     |
+| Schriftart       | Roboto                        |
 | Vor-/Nachname    | 36pt, fett, max. 65 mm breit  |
 | Kontaktdaten     | 14pt, normal, max. 50 mm breit|
 | Min. Schriftgröße| 8pt                           |
 
----
+## 🎨 Design Philosophy
 
-#### 🎨 Design Philosophy
-
-##### 1. Single Source of Truth
+### 1. Single Source of Truth
 
 Der Hintergrund (Logo, Streifen, rote Fläche) wird **einmal** in `backgroundRenderer.js` definiert und sowohl für die Canvas-Vorschau als auch für den PDF-Export verwendet. Keine doppelte Pflege, keine Abweichungen.
 
@@ -44,7 +38,7 @@ backgroundRenderer.js
         └──→ PDF-Export (Canvas → PNG → PDF als Bild-Layer)
 ```
 
-##### 2. Hybrid-Rendering im PDF
+### 2. Hybrid-Rendering im PDF
 
 | Layer       | Technik                       | Warum                              |
 |-------------|-------------------------------|------------------------------------|
@@ -53,7 +47,7 @@ backgroundRenderer.js
 
 → Bester Kompromiss zwischen visueller Treue und Textqualität.
 
-##### 3. Responsive Typography
+### 3. Responsive Typography
 
 Alle Textfelder passen sich automatisch an:
 
@@ -71,7 +65,29 @@ measureText() → zu breit?
 
 Vor- und Nachname teilen sich immer dieselbe Schriftgröße – der längere Name bestimmt die Größe für beide.
 
-##### 4. Schriftart Einrichtung
+### 4. CSS-Variablen für Theming
+
+Alle Farben sind als CSS Custom Properties definiert.
+
+```js
+--primary-color: #9d0000;
+--primary-light: #b13333;
+--primary-dark: #7a0000;
+--text-dark: #1a1a1a;
+--text-light: #ffffff;
+--bg-color: #f5f5f5;
+--card-bg: #ffffff;
+```
+
+### 5. Performance-First Export
+
+
+- Fonts werden beim App-Start im Hintergrund vorgeladen (`preloadFonts()` in `useEffect`)
+- Der gerenderte Hintergrund wird nach dem ersten Export als PNG gecacht (Canvas → PNG → PDF)
+
+- Erster Export: ~80ms – Zweiter Export: ~15ms (Cache-Hit für Hintergrundbild)
+
+### 6. Schriftart Einrichtung
 
 Der Generator nutzt die Schriftart **Roboto** für die Namensschilder. Die Schriftart wird lokal aus dem `fonts/` Verzeichnis geladen.
 
@@ -88,41 +104,9 @@ Der Generator nutzt die Schriftart **Roboto** für die Namensschilder. Die Schri
    └── Roboto-Medium.ttf
    ```
    
-   Hinweis: Der Generator erfordert mindestens die Regular-Variante. Die Medium-Variante wird für fetten Text verwendet.
+   Hinweis: Ohne die Font-Dateien funktioniert die Vorschau im Browser, der PDF-Export nutzt dann einen Fallback.
 
-3. **Automatische Font-Validierung**:
-   Beim Start des Servers prüft die Anwendung, ob die Font-Dateien verfügbar sind. Bei fehlenden Dateien wird eine Warnung im Browser-Konsole angezeigt, der Export funktioniert dann mit einem Standard-Fallback.
-
-**Hintergrund:** Die lokalen Font-Dateien werden im **Base64-Format** in den JavaScript-Bundle eingebunden. Dadurch:
-- Keine Laufzeit-Abhängigkeiten zu externen CDN-Servern
-- Schnellerer Export (keine Netzwerk-Anfragen während des PDF-Exports)
-- Volle Offline-Fähigkeit nach dem ersten Laden
-
-##### 5. CSS-Variablen für Theming
-
-Alle Farben sind als CSS Custom Properties definiert.
-
-```js
---primary-color: #9d0000;
---primary-light: #b13333;
---primary-dark: #7a0000;
---text-dark: #1a1a1a;
---text-light: #ffffff;
---bg-color: #f5f5f5;
---card-bg: #ffffff;
-```
-
-##### 6. Performance-First Export
-
-
-- Fonts werden beim App-Start im Hintergrund vorgeladen (`preloadFonts()` in `useEffect`)
-- Der gerenderte Hintergrund wird nach dem ersten Export als PNG gecacht (Canvas → PNG → PDF)
-
-- Erster Export: ~80ms – Zweiter Export: ~15ms (Cache-Hit für Hintergrundbild)
-
----
-
-#### 🛠️ Tech Stack
+## 🛠️ Tech Stack
 
 | Technologie                                                        | Zweck                          |
 |--------------------------------------------------------------------|--------------------------------|
@@ -132,24 +116,22 @@ Alle Farben sind als CSS Custom Properties definiert.
 | [Google Fonts – Roboto](https://fonts.google.com/specimen/Roboto)  | Schriftart in der Vorschau     |
 | Canvas 2D API                                                      | Live-Vorschau & Text-Messung   |
 
-Hinweis: Für den PDF-Export werden Roboto-Font-Dateien lokal aus dem `fonts/` Verzeichnis benötigt.
-
 ---
 
-#### 📦 Installation
+## 📦 Installation
 
-##### Voraussetzungen
+### Voraussetzungen
 
 - [Node.js](https://nodejs.org/) ≥ 18.x
 - npm ≥ 9.x
 
-##### Schritte
+### Schritte
 
 **1. Repository klonen**
 
 ```bash
-git clone https://github.com/DEIN-USERNAME/ljc-namensschild-generator.git
-cd ljc-namensschild-generator
+git clone https://github.com/domist07/blackfolder.git
+cd blackfolder
 ```
 
 **2. Dependencies installieren**
@@ -166,24 +148,7 @@ npm run dev
 
 Der Browser öffnet automatisch `http://localhost:3000`.
 
-##### Schriftart Einrichtung
-
-Vor dem ersten Export müssen die Roboto-Font-Dateien lokal bereitgestellt werden:
-
-1. Besuche [https://fonts.google.com/specimen/Roboto](https://fonts.google.com/specimen/Roboto)
-2. Lade die Schriftart herunter (z. B. als `.zip` Archiv)
-3. Extrahiere die Dateien `Roboto-Regular.ttf` und `Roboto-Medium.ttf`
-4. Erstelle im Projektverzeichnis einen `fonts/` Ordner und kopiere die Dateien dort hinein:
-
-```
-fonts/
-├── Roboto-Regular.ttf
-└── Roboto-Medium.ttf
-```
-
-Hinweis: Ohne die Font-Dateien funktioniert die Vorschau im Browser, der PDF-Export nutzt dann einen Fallback.
-
-##### Produktion
+### Produktion
 
 Optimiertes Build erstellen:
 
@@ -200,18 +165,17 @@ npm run preview
 Das Ergebnis liegt in `dist/` und kann auf jedem statischen Hosting deployed werden
 (Netlify, Vercel, GitHub Pages).
 
----
-
-#### 📂 Projektstruktur
+## 📂 Projektstruktur
 
 ```
 ljc-namensschild-generator/
 ├── index.html                        Einstiegspunkt + Google Fonts Link
 ├── package.json
 ├── vite.config.js
-├── fonts/                            Roboto-Font-Dateien (lokal)
+├── fonts/                            Roboto-Font-Dateien
 ├── public/
-│   └── favicon.svg                   Favicon
+│   ├── favicon.svg                   Favicon
+│   └── favicon.ico                   Favicon
 └── src/
     ├── main.jsx                      React-Mounting
     ├── App.jsx                       Root-Komponente
@@ -227,11 +191,9 @@ ljc-namensschild-generator/
         └── pdfExport.js              PDF-Generierung (Hybrid-Ansatz)
 ```
 
----
+## 🔧 Konfiguration
 
-#### 🔧 Konfiguration
-
-##### Fonts anpassen
+### Fonts anpassen
 
 Roboto wird lokal aus dem `fonts/` Verzeichnis geladen. Um die Schriftart zu ändern:
 
@@ -239,7 +201,7 @@ Roboto wird lokal aus dem `fonts/` Verzeichnis geladen. Um die Schriftart zu än
 2. Die Pfade in `src/utils/fontLoader.js` (`FONT_LOCAL_PATHS`) auf die neuen Dateien anpassen
 3. In `src/utils/constants.js` die Schriftart-Namen ggf. anpassen
 
-##### Hintergrund ändern
+### Hintergrund ändern
 
 `src/utils/backgroundRenderer.js` editieren. Die Funktion `renderBackground(ctx)` zeichnet
 auf einen Standard Canvas-2D-Kontext. Änderungen sind sofort in der Vorschau **und** im
@@ -248,22 +210,7 @@ PDF-Export sichtbar – da beide dieselbe Funktion nutzen.
 > Nach Hintergrund-Änderungen im Dev-Betrieb ggf. `clearBackgroundCache()` aus
 > `pdfExport.js` aufrufen, damit der PDF-Cache neu aufgebaut wird.
 
-##### Maße anpassen
+### Maße anpassen
 
 Alle physischen Maße sind zentral in `src/utils/constants.js` unter `PHYSICAL` definiert.
 Änderungen dort wirken sich automatisch auf Vorschau und PDF aus.
-
----
-
-#### 🖨️ Druckanleitung
-
-
-1. Alle Felder ausfüllen
-2. **„PDF für A4-Druck exportieren"** klicken
-3. PDF öffnen und drucken mit:
-
-   - Skalierung: **100% / Tatsächliche Größe**
-   - „An Seite anpassen" muss deaktiviert sein
-
-4. Entlang der grauen Schnittmarkierungen ausschneiden
-5. Fertig – in die Notenmappe einlegen
