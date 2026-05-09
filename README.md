@@ -12,7 +12,7 @@
 - **Automatische Schriftanpassung** – Text wird dynamisch verkleinert, wenn er zu breit wird
 - **Offline-fähig** – Eingaben werden im LocalStorage gespeichert
 - **Zwei Export-Modi** – Einzelnes Namensschild oder A4-Druckvorlage mit Schnittmarkierungen
-- **Custom Font** – Roboto wird von Google Fonts CDN geladen und direkt ins PDF eingebettet
+- **Lokale Schriftart** – Roboto wird lokal aus dem `fonts/` Verzeichnis geladen
 
 ---
 
@@ -71,7 +71,34 @@ measureText() → zu breit?
 
 Vor- und Nachname teilen sich immer dieselbe Schriftgröße – der längere Name bestimmt die Größe für beide.
 
-##### 4. CSS-Variablen für Theming
+##### 4. Schriftart Einrichtung
+
+Der Generator nutzt die Schriftart **Roboto** für die Namensschilder. Die Schriftart wird lokal aus dem `fonts/` Verzeichnis geladen.
+
+**Installation der Schriftart:**
+1. **Roboto von Google Fonts herunterladen**:
+   - Besuche [https://fonts.google.com/specimen/Roboto](https://fonts.google.com/specimen/Roboto)
+   - Klicke auf den Download-Button oder lade die Schriftart manuell herunter
+
+2. **Font-Dateien im Projekt platzieren**:
+   Erstelle im Projektverzeichnis einen `fonts/` Ordner (auf gleicher Ebene wie `src/`) und füge folgende Dateien hinzu:
+   ```
+   fonts/
+   ├── Roboto-Regular.ttf
+   └── Roboto-Medium.ttf
+   ```
+   
+   Hinweis: Der Generator erfordert mindestens die Regular-Variante. Die Medium-Variante wird für fetten Text verwendet.
+
+3. **Automatische Font-Validierung**:
+   Beim Start des Servers prüft die Anwendung, ob die Font-Dateien verfügbar sind. Bei fehlenden Dateien wird eine Warnung im Browser-Konsole angezeigt, der Export funktioniert dann mit einem Standard-Fallback.
+
+**Hintergrund:** Die lokalen Font-Dateien werden im **Base64-Format** in den JavaScript-Bundle eingebunden. Dadurch:
+- Keine Laufzeit-Abhängigkeiten zu externen CDN-Servern
+- Schnellerer Export (keine Netzwerk-Anfragen während des PDF-Exports)
+- Volle Offline-Fähigkeit nach dem ersten Laden
+
+##### 5. CSS-Variablen für Theming
 
 Alle Farben sind als CSS Custom Properties definiert.
 
@@ -85,7 +112,7 @@ Alle Farben sind als CSS Custom Properties definiert.
 --card-bg: #ffffff;
 ```
 
-##### 5. Performance-First Export
+##### 6. Performance-First Export
 
 
 - Fonts werden beim App-Start im Hintergrund vorgeladen (`preloadFonts()` in `useEffect`)
@@ -102,8 +129,10 @@ Alle Farben sind als CSS Custom Properties definiert.
 | [React 18](https://react.dev)                                      | UI-Komponenten & State         |
 | [Vite 5](https://vitejs.dev)                                       | Build-Tool & Dev-Server        |
 | [jsPDF](https://github.com/parallax/jsPDF)                         | PDF-Generierung                |
-| [Google Fonts – Roboto](https://fonts.google.com/specimen/Roboto)  | Schriftart in der Vorschau & PDF |
+| [Google Fonts – Roboto](https://fonts.google.com/specimen/Roboto)  | Schriftart in der Vorschau     |
 | Canvas 2D API                                                      | Live-Vorschau & Text-Messung   |
+
+Hinweis: Für den PDF-Export werden Roboto-Font-Dateien lokal aus dem `fonts/` Verzeichnis benötigt.
 
 ---
 
@@ -137,6 +166,23 @@ npm run dev
 
 Der Browser öffnet automatisch `http://localhost:3000`.
 
+##### Schriftart Einrichtung
+
+Vor dem ersten Export müssen die Roboto-Font-Dateien lokal bereitgestellt werden:
+
+1. Besuche [https://fonts.google.com/specimen/Roboto](https://fonts.google.com/specimen/Roboto)
+2. Lade die Schriftart herunter (z. B. als `.zip` Archiv)
+3. Extrahiere die Dateien `Roboto-Regular.ttf` und `Roboto-Medium.ttf`
+4. Erstelle im Projektverzeichnis einen `fonts/` Ordner und kopiere die Dateien dort hinein:
+
+```
+fonts/
+├── Roboto-Regular.ttf
+└── Roboto-Medium.ttf
+```
+
+Hinweis: Ohne die Font-Dateien funktioniert die Vorschau im Browser, der PDF-Export nutzt dann einen Fallback.
+
 ##### Produktion
 
 Optimiertes Build erstellen:
@@ -163,8 +209,9 @@ ljc-namensschild-generator/
 ├── index.html                        Einstiegspunkt + Google Fonts Link
 ├── package.json
 ├── vite.config.js
-└── public/
-    └── favicon.svg                   Favicon
+├── fonts/                            Roboto-Font-Dateien (lokal)
+├── public/
+│   └── favicon.svg                   Favicon
 └── src/
     ├── main.jsx                      React-Mounting
     ├── App.jsx                       Root-Komponente
@@ -186,10 +233,11 @@ ljc-namensschild-generator/
 
 ##### Fonts anpassen
 
-Die Schriftart Roboto wird von Google Fonts CDN geladen. Um die Schriftart zu ändern:
+Roboto wird lokal aus dem `fonts/` Verzeichnis geladen. Um die Schriftart zu ändern:
 
-1. Google Fonts `<link>` in `index.html` anpassen
-2. Die URLs in `src/utils/fontLoader.js` (`FONT_URLS`) auf die neuen Font-Dateien ändern
+1. Neue Font-Dateien im `fonts/` Verzeichnis ablegen (z. B. `FontName-Regular.ttf`, `FontName-Medium.ttf`)
+2. Die Pfade in `src/utils/fontLoader.js` (`FONT_LOCAL_PATHS`) auf die neuen Dateien anpassen
+3. In `src/utils/constants.js` die Schriftart-Namen ggf. anpassen
 
 ##### Hintergrund ändern
 
